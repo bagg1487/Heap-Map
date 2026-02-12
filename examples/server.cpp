@@ -10,10 +10,10 @@
 #include <chrono>
 #include <ctime>
 
-// Dear ImGui
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+
+#include "../third-party/imgui/imgui.h"
+#include "../third-party/imgui/backends/imgui_impl_glfw.h"
+#include "../third-party/imgui/backends/imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
 
 using namespace std;
@@ -31,11 +31,10 @@ struct SharedData {
     Location current_location;
     mutex data_mutex;
     int counter = 0;
-    deque<json> recent_records; // для истории
+    deque<json> recent_records; 
     const size_t max_history = 100;
 };
 
-// Функция для форматирования timestamp
 string format_timestamp(long long timestamp) {
     if (timestamp == 0) return "N/A";
     time_t time = timestamp;
@@ -44,15 +43,12 @@ string format_timestamp(long long timestamp) {
     return string(buffer);
 }
 
-// GUI поток
 void run_gui(SharedData* shared) {
-    // Инициализация GLFW
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW" << endl;
         return;
     }
 
-    // Создание окна
     GLFWwindow* window = glfwCreateWindow(1280, 720, "GPS Server Monitor", NULL, NULL);
     if (!window) {
         cerr << "Failed to create window" << endl;
