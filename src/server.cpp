@@ -5,91 +5,173 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <sstream>
+
+#ifndef _WIN32
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <cstring>
+#endif
 
 using namespace std;
 using namespace zmq;
+
+string get_local_ip() {
+    string ip = "127.0.0.1";
+    
+#ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+    struct hostent* host = gethostbyname(hostname);
+    if (host) {
+        for (int i = 0; host->h_addr_list[i] != nullptr; i++) {
+            struct in_addr addr;
+            addr.s_addr = *(u_long*)host->h_addr_list[i];
+            char* ip_str = inet_ntoa(addr);
+            if (strcmp(ip_str, "127.0.0.1") != 0) {
+                ip = ip_str;
+                break;
+            }
+        }
+    }
+    WSACleanup();
+#else
+    struct ifaddrs *ifaddr, *ifa;
+    if (getifaddrs(&ifaddr) == 0) {
+        for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+            if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
+                if (strcmp(ifa->ifa_name, "lo") == 0) continue;
+                if (strstr(ifa->ifa_name, "docker") != nullptr) continue;
+                if (strstr(ifa->ifa_name, "veth") != nullptr) continue;
+                
+                void* addr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+                char host[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, addr, host, sizeof(host));
+
+                if (strcmp(host, "127.0.0.1") != 0) {
+                    ip = host;
+                    break;
+                }
+            }
+        }
+        freeifaddrs(ifaddr);
+    }
+#endif
+    
+    return ip;
+}
 
 void run_server(SharedData* shared) {
     context_t context(1);
     socket_t socket(context, socket_type::rep);
     socket.bind("tcp://*:8080");
+
+    string server_ip = get_local_ip();
     
-    string json_filename = "location_data.json";
-    string txt_filename = "location_log.txt";
-    
-    cout << "Server started on port 8080" << endl;
-    
+    cout << "=====================================" << endl;
+    cout << "Сервер запущен на " << server_ip << ":8080" << endl;
+    cout << "=====================================" << endl;
+ 
+    bool phone_connected = false;
+
     while (true) {
         message_t msg;
-        (void)socket.recv(msg, recv_flags::none);
-        string raw_text((char*)msg.data(), msg.size());
+        auto recv_result = socket.recv(msg, recv_flags::none);
+        (void)recv_result;
         
-        try {
-            json gps_data = json::parse(raw_text);
-            
-            if (!gps_data.contains("latitude") || !gps_data.contains("longitude")) {
-                string error_msg = "ERROR:No lat/lon";
-                message_t reply(error_msg.size());
-                memcpy(reply.data(), error_msg.data(), error_msg.size());
-                socket.send(reply, send_flags::none);
-                continue;
-            }
+        string raw_text(static_cast<char*>(msg.data()), msg.size());
+        
+        if (raw_text == "ping") {
+            socket.send(zmq::buffer("pong"), zmq::send_flags::none);
+            continue;
+        }
+        
+        if (raw_text == "show") {
+            stringstream response_stream;
+            response_stream << "Последние данные:\n";
             
             {
                 lock_guard<mutex> lock(shared->data_mutex);
-                shared->current_location.latitude = gps_data["latitude"];
-                shared->current_location.longitude = gps_data["longitude"];
-                shared->current_location.altitude = gps_data.value("altitude", 0.0f);
-                shared->current_location.timestamp = gps_data.value("time", 0LL);
-                shared->counter++;
-                
-                shared->recent_records.push_back(gps_data);
+                if (shared->recent_records.empty()) {
+                    response_stream << "Нет данных\n";
+                } else {
+                    int count = 0;
+                    for (auto it = shared->recent_records.rbegin(); it != shared->recent_records.rend() && count < 10; ++it, ++count) {
+                        response_stream << count + 1 << ". " << it->dump() << "\n";
+                    }
+                }
+            }
+            
+            socket.send(zmq::buffer(response_stream.str()), zmq::send_flags::none);
+            continue;
+        }
+        
+        if (!phone_connected) {
+            cout << "ТЕЛЕФОН ПОДКЛЮЧЕН" << endl;
+            phone_connected = true;
+        }
+        
+        cout << "Получено: " << raw_text << endl;
+        
+        try {
+            json received_data = json::parse(raw_text);
+            
+            {
+                lock_guard<mutex> lock(shared->data_mutex);
+                shared->recent_records.push_back(received_data);
                 if (shared->recent_records.size() > shared->max_history) {
                     shared->recent_records.pop_front();
                 }
+                shared->counter++;
             }
-            
-            json all_data;
-            ifstream json_file(json_filename);
-            if (json_file.is_open()) {
-                try {
-                    all_data = json::parse(json_file);
-                } catch (...) {
-                    all_data = json::array();
+
+            if (received_data.contains("traffic") && !received_data["traffic"].is_null() && !received_data["traffic"].empty()) {
+                json traffic_data = received_data["traffic"];
+                
+                json all_traffic_data;
+                ifstream traffic_file("traffic_data.json");
+                if (traffic_file.is_open()) {
+                    try {
+                        all_traffic_data = json::parse(traffic_file);
+                    } catch (...) {
+                        all_traffic_data = json::array();
+                    }
+                } else {
+                    all_traffic_data = json::array();
                 }
-            } else {
-                all_data = json::array();
+                
+                json traffic_record;
+                traffic_record["mobile_rx_bytes"] = traffic_data.value("mobile_rx_bytes", 0LL);
+                traffic_record["mobile_tx_bytes"] = traffic_data.value("mobile_tx_bytes", 0LL);
+                traffic_record["total_rx_bytes"] = traffic_data.value("total_rx_bytes", 0LL);
+                traffic_record["total_tx_bytes"] = traffic_data.value("total_tx_bytes", 0LL);
+                traffic_record["mobile_total_bytes"] = traffic_data.value("mobile_total_bytes", 0LL);
+                traffic_record["total_bytes"] = traffic_data.value("total_bytes", 0LL);
+                
+                if (traffic_data.contains("top_apps") && !traffic_data["top_apps"].is_null()) {
+                    traffic_record["top_apps"] = traffic_data["top_apps"];
+                }
+                
+                traffic_record["timestamp"] = received_data.value("timestamp", 0LL);
+                all_traffic_data.push_back(traffic_record);
+                
+                ofstream traffic_file_out("traffic_data.json");
+                traffic_file_out << all_traffic_data.dump(4);
             }
-            
-            all_data.push_back(gps_data);
-            
-            ofstream json_file_out(json_filename);
-            json_file_out << all_data.dump(4);
-            
-            ofstream txt_file(txt_filename, ios::app);
-            txt_file << "Record #" << shared->counter << ":\n";
-            txt_file << "  Latitude: " << gps_data["latitude"] << "\n";
-            txt_file << "  Longitude: " << gps_data["longitude"] << "\n";
-            txt_file << "  Altitude: " << gps_data.value("altitude", 0.0) << "\n";
-            txt_file << "  Time: " << gps_data.value("time", 0) << "\n";
-            txt_file << "---\n";
 
             string response = "OK:" + to_string(shared->counter);
-            message_t reply(response.size());
-            memcpy(reply.data(), response.data(), response.size());
-            socket.send(reply, send_flags::none);
-            
-        } catch (const json::parse_error& e) {
-            string error_msg = "ERROR:Invalid JSON";
-            message_t reply(error_msg.size());
-            memcpy(reply.data(), error_msg.data(), error_msg.size());
-            socket.send(reply, send_flags::none);
+            socket.send(zmq::buffer(response), zmq::send_flags::none);
+            cout << "Данные #" << shared->counter << " сохранены" << endl;
             
         } catch (const exception& e) {
-            string error_msg = "ERROR:" + string(e.what());
-            message_t reply(error_msg.size());
-            memcpy(reply.data(), error_msg.data(), error_msg.size());
-            socket.send(reply, send_flags::none);
+            cerr << "ERROR: " << e.what() << endl;
+            socket.send(zmq::buffer("ERROR"), zmq::send_flags::none);
         }
+        
+        cout << "=====================================" << endl;
     }
 }

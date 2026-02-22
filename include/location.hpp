@@ -7,9 +7,10 @@ using namespace std;
 using json = nlohmann::json;
 
 struct Location {
-    float latitude = 0;
-    float longitude = 0;
-    float altitude = 0;
+    double latitude = 0;
+    double longitude = 0;
+    double altitude = 0;
+    float accuracy = 0;
     long long timestamp = 0;
 };
 

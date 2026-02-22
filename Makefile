@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends
+CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I/usr/include
 LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11
 
 SRC_DIR = src

@@ -1,0 +1,1842 @@
+Record #1:
+  Latitude: 55.0132234
+  Longitude: 82.9506891
+  Altitude: 133.6
+  Time: 1951537017
+---
+Record #2:
+  Latitude: 55.0132234
+  Longitude: 82.9506891
+  Altitude: 133.6
+  Time: 1951537050
+---
+Record #3:
+  Latitude: 55.0132234
+  Longitude: 82.9506891
+  Altitude: 133.6
+  Time: 1951537017
+---
+Record #4:
+  Latitude: 55.0132234
+  Longitude: 82.9506891
+  Altitude: 133.6
+  Time: 1951537050
+---
+Record #5:
+  Latitude: 55.0131975
+  Longitude: 82.9507872
+  Altitude: 133.6
+  Time: 1951553788
+---
+Record #6:
+  Latitude: 55.0131975
+  Longitude: 82.9507872
+  Altitude: 133.6
+  Time: 1951553788
+---
+Record #7:
+  Latitude: 55.0131975
+  Longitude: 82.9507872
+  Altitude: 133.6
+  Time: 1951553788
+---
+Record #8:
+  Latitude: 55.0131828
+  Longitude: 82.9507257
+  Altitude: 133.6
+  Time: 1951575169
+---
+Record #9:
+  Latitude: 55.0131743
+  Longitude: 82.9507264
+  Altitude: 133.6
+  Time: 1951596483
+---
+Record #10:
+  Latitude: 55.0131941
+  Longitude: 82.9507607
+  Altitude: 133.6
+  Time: 1951617847
+---
+Record #11:
+  Latitude: 55.0131898
+  Longitude: 82.9508092
+  Altitude: 133.6
+  Time: 1951639168
+---
+Record #12:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #13:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #14:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #15:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #16:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #17:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #18:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #19:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #20:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #21:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #22:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #23:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #24:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #25:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #26:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #27:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #28:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #29:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #30:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #31:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #32:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #33:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #34:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #35:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #36:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #37:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #38:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #39:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #40:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #41:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #42:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #43:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #44:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #45:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #46:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #47:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #48:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #49:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #50:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #51:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #52:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #53:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #54:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #55:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #56:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #57:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #58:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #59:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #60:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #61:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #62:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #63:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #64:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #65:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #66:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #67:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #68:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #69:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #70:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #71:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #72:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #73:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #74:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #75:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #76:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #77:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #78:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #79:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #80:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #81:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #82:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #83:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #84:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #85:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #86:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #87:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #88:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #89:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #90:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #91:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #92:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #93:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #94:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #95:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #96:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #97:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #98:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #99:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #100:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #101:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #102:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #103:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #104:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #105:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #106:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #107:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #108:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #1:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #2:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #3:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #4:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #5:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #6:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #7:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #8:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #9:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #10:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #11:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #12:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #13:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #14:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #15:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #16:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #17:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #18:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #19:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #20:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #21:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #22:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #23:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #24:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #25:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #26:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #27:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #28:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #29:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #30:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #31:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #32:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #33:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #34:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #35:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #36:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #37:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #38:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #39:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #40:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #41:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #1:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #2:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #3:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #4:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #1:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #2:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #3:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #4:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #5:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #6:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #7:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #8:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #9:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #10:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #11:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #12:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #13:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #14:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #15:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #16:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #17:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #18:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #19:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #20:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #21:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #22:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #23:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #24:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #25:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #26:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #27:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #28:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #29:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #30:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #31:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #32:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #33:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #34:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #35:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #36:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #37:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #38:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #39:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #40:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #41:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #42:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #43:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #44:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #45:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #46:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #47:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #48:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #49:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #50:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #1:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #2:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #3:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #4:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #5:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #6:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #7:
+  Latitude: 55.0131966
+  Longitude: 82.9507584
+  Altitude: 133.6
+  Time: 1951660548
+---
+Record #8:
+  Latitude: 55.0131714
+  Longitude: 82.950704
+  Altitude: 133.6
+  Time: 1952848339
+---
+Record #9:
+  Latitude: 55.0131714
+  Longitude: 82.950704
+  Altitude: 133.6
+  Time: 1952848339
+---
+Record #10:
+  Latitude: 55.0131714
+  Longitude: 82.950704
+  Altitude: 133.6
+  Time: 1952848339
+---
+Record #11:
+  Latitude: 55.0131714
+  Longitude: 82.950704
+  Altitude: 133.6
+  Time: 1952848339
+---
+Record #12:
+  Latitude: 55.0131714
+  Longitude: 82.950704
+  Altitude: 133.6
+  Time: 1952848339
+---
+Record #13:
+  Latitude: 55.0131963
+  Longitude: 82.9507322
+  Altitude: 133.6
+  Time: 1952869694
+---
+Record #14:
+  Latitude: 55.0131963
+  Longitude: 82.9507322
+  Altitude: 133.6
+  Time: 1952869694
+---
+Record #15:
+  Latitude: 55.0131963
+  Longitude: 82.9507322
+  Altitude: 133.6
+  Time: 1952869694
+---
+Record #16:
+  Latitude: 55.0131963
+  Longitude: 82.9507322
+  Altitude: 133.6
+  Time: 1952869694
+---
+Record #17:
+  Latitude: 55.0131996
+  Longitude: 82.9507093
+  Altitude: 133.6
+  Time: 1952891039
+---
+Record #18:
+  Latitude: 55.0131996
+  Longitude: 82.9507093
+  Altitude: 133.6
+  Time: 1952891039
+---
+Record #19:
+  Latitude: 55.0131996
+  Longitude: 82.9507093
+  Altitude: 133.6
+  Time: 1952891039
+---
+Record #20:
+  Latitude: 55.0131996
+  Longitude: 82.9507093
+  Altitude: 133.6
+  Time: 1952891039
+---
+Record #21:
+  Latitude: 55.0132054
+  Longitude: 82.9507467
+  Altitude: 133.6
+  Time: 1952912356
+---
+Record #22:
+  Latitude: 55.0132054
+  Longitude: 82.9507467
+  Altitude: 133.6
+  Time: 1952912356
+---
+Record #23:
+  Latitude: 55.0132054
+  Longitude: 82.9507467
+  Altitude: 133.6
+  Time: 1952912356
+---
+Record #24:
+  Latitude: 55.0132054
+  Longitude: 82.9507467
+  Altitude: 133.6
+  Time: 1952912356
+---
+Record #25:
+  Latitude: 55.0132044
+  Longitude: 82.9507963
+  Altitude: 133.6
+  Time: 1952933692
+---
+Record #26:
+  Latitude: 55.0132044
+  Longitude: 82.9507963
+  Altitude: 133.6
+  Time: 1952933692
+---
+Record #27:
+  Latitude: 55.0132044
+  Longitude: 82.9507963
+  Altitude: 133.6
+  Time: 1952933692
+---
+Record #28:
+  Latitude: 55.0132044
+  Longitude: 82.9507963
+  Altitude: 133.6
+  Time: 1952933692
+---
+Record #29:
+  Latitude: 55.0132044
+  Longitude: 82.9507963
+  Altitude: 133.6
+  Time: 1952933692
+---
+Record #30:
+  Latitude: 55.0132035
+  Longitude: 82.9508383
+  Altitude: 133.6
+  Time: 1952955166
+---
+Record #31:
+  Latitude: 55.0132035
+  Longitude: 82.9508383
+  Altitude: 133.6
+  Time: 1952955166
+---
+Record #32:
+  Latitude: 55.0132035
+  Longitude: 82.9508383
+  Altitude: 133.6
+  Time: 1952955166
+---
+Record #33:
+  Latitude: 55.0132035
+  Longitude: 82.9508383
+  Altitude: 133.6
+  Time: 1952955166
+---
+Record #1:
+  Latitude: 55.0131901
+  Longitude: 82.9507034
+  Altitude: 133.6
+  Time: 1952976519
+---
+Record #2:
+  Latitude: 55.0132037
+  Longitude: 82.9507676
+  Altitude: 133.6
+  Time: 1952997823
+---
+Record #3:
+  Latitude: 55.0132037
+  Longitude: 82.9507676
+  Altitude: 133.6
+  Time: 1952997823
+---
+Record #4:
+  Latitude: 55.0132037
+  Longitude: 82.9507676
+  Altitude: 133.6
+  Time: 1952997823
+---
+Record #5:
+  Latitude: 55.0132037
+  Longitude: 82.9507676
+  Altitude: 133.6
+  Time: 1952997823
+---
+Record #6:
+  Latitude: 55.0132037
+  Longitude: 82.9507676
+  Altitude: 133.6
+  Time: 1952997823
+---
+Record #7:
+  Latitude: 55.0131676
+  Longitude: 82.9507125
+  Altitude: 133.6
+  Time: 1953019170
+---
+Record #8:
+  Latitude: 55.0131676
+  Longitude: 82.9507125
+  Altitude: 133.6
+  Time: 1953019170
+---
+Record #9:
+  Latitude: 55.0131676
+  Longitude: 82.9507125
+  Altitude: 133.6
+  Time: 1953019170
+---
+Record #10:
+  Latitude: 55.0131676
+  Longitude: 82.9507125
+  Altitude: 133.6
+  Time: 1953019170
+---
+Record #11:
+  Latitude: 55.0131676
+  Longitude: 82.9507125
+  Altitude: 133.6
+  Time: 1953019170
+---
+Record #12:
+  Latitude: 55.0131993
+  Longitude: 82.9507648
+  Altitude: 133.6
+  Time: 1953040467
+---
+Record #13:
+  Latitude: 55.0131993
+  Longitude: 82.9507648
+  Altitude: 133.6
+  Time: 1953040467
+---
+Record #14:
+  Latitude: 55.0131993
+  Longitude: 82.9507648
+  Altitude: 133.6
+  Time: 1953040467
+---
+Record #15:
+  Latitude: 55.0131993
+  Longitude: 82.9507648
+  Altitude: 133.6
+  Time: 1953040467
+---
+Record #16:
+  Latitude: 55.0132036
+  Longitude: 82.9508631
+  Altitude: 133.6
+  Time: 1953061801
+---
+Record #17:
+  Latitude: 55.0132036
+  Longitude: 82.9508631
+  Altitude: 133.6
+  Time: 1953061801
+---
+Record #18:
+  Latitude: 55.0132036
+  Longitude: 82.9508631
+  Altitude: 133.6
+  Time: 1953061801
+---
+Record #19:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #1:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #1:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #2:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #3:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #4:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #5:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #6:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #7:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #8:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #9:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #10:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #11:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #12:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #13:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #14:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #15:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #16:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #17:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #18:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #19:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #20:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #21:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #22:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #23:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #24:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #25:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #26:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #27:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #28:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #29:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #30:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #31:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #32:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #33:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #34:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #35:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #1:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #2:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #3:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #4:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #5:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #6:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #1:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #2:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #3:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #4:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #5:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #6:
+  Latitude: 55.0131857
+  Longitude: 82.9507446
+  Altitude: 133.6
+  Time: 1953083150
+---
+Record #1:
+  Latitude: 54.9772
+  Longitude: 82.76
+  Altitude: 76.9
+  Accuracy: 14.029
+  Time: 2026-02-22 18:23:05
+  Timestamp: 1771759385356
+---
+Record #1:
+  Latitude: 54.9772
+  Longitude: 82.76
+  Altitude: 76.9
+  Accuracy: 14.029
+  Time: 2026-02-22 18:25:10
+  Timestamp: 1771759510368
+---
+Record #1:
+  Latitude: 54.9772
+  Longitude: 82.76
+  Altitude: 76.9
+  Accuracy: 16.456
+  Time: 2026-02-22 18:53:31
+  Timestamp: 1771761211821
+---

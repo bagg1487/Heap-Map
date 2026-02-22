@@ -1,0 +1,16 @@
+{
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include",
+        "/usr/local/include",
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/third-party",
+        "${workspaceFolder}/third-party/imgui",
+        "${workspaceFolder}/third-party/imgui/backends"
+    ],
+    "C_Cpp.intelliSenseEngine": "Default",
+    "files.associations": {
+        "*.hpp": "cpp",
+        "*.h": "cpp"
+    }
+}
