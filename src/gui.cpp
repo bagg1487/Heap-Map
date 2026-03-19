@@ -1,524 +1,612 @@
 #include "server.hpp"
+#include "heatmap.hpp"
 #include "../third-party/imgui/imgui.h"
 #include "../third-party/imgui/backends/imgui_impl_glfw.h"
 #include "../third-party/imgui/backends/imgui_impl_opengl3.h"
+#include "../third-party/implot/implot.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
-#include <chrono>
-#include <thread>
-#include <ctime>
-#include <iomanip>
 #include <vector>
+#include <string>
 #include <map>
+#include <deque>
 #include <algorithm>
+#include <nlohmann/json.hpp>
+#include <zmq.hpp>
+
+void generate_html_map(const std::vector<MapPoint>& points, const std::string& filename);
+void draw_minimap(const std::vector<MapPoint>& points, int point_size);
+void load_points_from_json(std::vector<MapPoint>& map_points);
+std::string formatTime(long long ts);
 
 using namespace std;
-using namespace ImGui;
+using json = nlohmann::json;
 
-string format_time(long long timestamp_ms) {
-    if (timestamp_ms == 0) return "0";
-    time_t seconds = timestamp_ms / 1000;
-    struct tm* timeinfo = localtime(&seconds);
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%d.%m.%Y %H:%M:%S", timeinfo);
-    return string(buffer);
-}
+zmq::context_t* g_context = nullptr;
+zmq::socket_t* g_command_socket = nullptr;
 
-string format_bytes(long long bytes) {
-    const char* units[] = {"B", "KB", "MB", "GB"};
+vector<MapPoint> map_points;
+
+string formatBytes(long long bytes) {
+    const char* units[] = {"B", "KB", "MB", "GB", "TB"};
     int unit = 0;
     double size = bytes;
-    while (size >= 1024 && unit < 3) {
+    while (size >= 1024 && unit < 4) {
         size /= 1024;
         unit++;
     }
-    char buffer[50];
-    snprintf(buffer, sizeof(buffer), "%.2f %s", size, units[unit]);
-    return string(buffer);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.2f %s", size, units[unit]);
+    return string(buf);
 }
 
-string format_json_compact(const string& json_str) {
-    if (json_str.empty()) return "{}";
-    if (json_str.length() > 100) {
-        return json_str.substr(0, 100) + "...";
+void send_filter_command(SharedData* shared, const string& filter_name, bool value) {
+    if (!g_command_socket) return;
+    
+    try {
+        json command;
+        command["type"] = "filter";
+        command["filter"] = filter_name;
+        command["value"] = value;
+        
+        string cmd_str = command.dump();
+        
+        zmq::message_t request(cmd_str.size());
+        memcpy(request.data(), cmd_str.c_str(), cmd_str.size());
+        
+        if (g_command_socket->send(request, zmq::send_flags::dontwait)) {
+            zmq::message_t reply;
+            try {
+                g_command_socket->recv(reply, zmq::recv_flags::dontwait);
+                cout << "Filter command sent: " << filter_name << " = " << value << endl;
+            } catch (...) {}
+        }
+    } catch (const exception& e) {
+        cerr << "Failed to send filter command: " << e.what() << endl;
     }
-    return json_str;
 }
 
-struct TelephonyRecord {
+struct SignalData {
+    float rsrp;
+    float rsrq;
+    float rssnr;
+    float dbm;
+    float level;
     long long timestamp;
-    string data;
-};
-
-struct TrafficRecord {
-    long long timestamp;
-    long long mobile_rx;
-    long long mobile_tx;
-    long long total_rx;
-    long long total_tx;
-    map<string, json> top_apps;
 };
 
 void run_gui(SharedData* shared) {
     if (!glfwInit()) return;
-
-    GLFWwindow* window = glfwCreateWindow(1600, 900, "GPS Server Monitor", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return;
-    }
-
+    
+    GLFWwindow* window = glfwCreateWindow(1600, 900, "GPS Monitor Pro", NULL, NULL);
+    if (!window) { glfwTerminate(); return; }
+    
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
-
+    
     IMGUI_CHECKVERSION();
-    CreateContext();
-    ImGuiIO& io = GetIO(); (void)io;
-    StyleColorsDark();
-
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
+    ImGui::StyleColorsDark();
+    
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
-
-    ImFontConfig font_config;
-    font_config.SizePixels = 20.0f;
-    io.Fonts->AddFontDefault(&font_config);
-
-    ImGuiStyle& style = GetStyle();
-    style.WindowRounding = 10.0f;
-    style.FrameRounding = 8.0f;
-    style.ScrollbarSize = 24.0f;
-    style.GrabMinSize = 16.0f;
-    style.WindowBorderSize = 2.0f;
-    style.FrameBorderSize = 1.0f;
-    style.PopupBorderSize = 1.0f;
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.2f, 0.3f, 0.5f, 1.0f);
-    style.Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.3f, 0.5f, 0.5f);
-    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.3f, 0.4f, 0.6f, 0.7f);
-    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.4f, 0.5f, 0.7f, 0.8f);
-    style.Colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-    style.Colors[ImGuiCol_TabHovered] = ImVec4(0.3f, 0.4f, 0.6f, 1.0f);
-    style.Colors[ImGuiCol_TabActive] = ImVec4(0.2f, 0.3f, 0.5f, 1.0f);
-
-    vector<TelephonyRecord> telephony_history;
-    vector<TrafficRecord> traffic_history;
-    long long last_telephony_load = 0;
-    long long last_traffic_load = 0;
-
+    
+    g_context = new zmq::context_t(1);
+    g_command_socket = new zmq::socket_t(*g_context, zmq::socket_type::req);
+    g_command_socket->set(zmq::sockopt::rcvtimeo, 1000);
+    g_command_socket->set(zmq::sockopt::sndtimeo, 1000);
+    g_command_socket->set(zmq::sockopt::linger, 0);
+    
+    string server_ip = get_local_ip();
+    
+    try {
+        g_command_socket->connect("tcp://" + server_ip + ":8080");
+        cout << "Command socket connected to port 8080" << endl;
+    } catch (const exception& e) {
+        cerr << "Failed to connect command socket: " << e.what() << endl;
+    }
+    
+    load_points_from_json(map_points);
+    
+    vector<json> locations;
+    vector<pair<string, json>> cells;
+    vector<json> traffic;
+    
+    int last_count = 0;
+    int last_points_count = 0;
+    
+    deque<float> rsrp_history;
+    deque<float> rsrq_history;
+    deque<float> rssnr_history;
+    deque<float> dbm_history;
+    deque<float> level_history;
+    deque<float> time_history;
+    const int max_history = 200;
+    
+    int sample_count = 0;
+    
+    bool prev_filter_location = shared->filter_location;
+    bool prev_filter_telephony = shared->filter_telephony;
+    bool prev_filter_traffic = shared->filter_traffic;
+    bool prev_filter_lte = shared->filter_lte;
+    bool prev_filter_gsm = shared->filter_gsm;
+    bool prev_filter_wcdma = shared->filter_wcdma;
+    
+    bool command_socket_connected = false;
+    bool show_heatmap = true;
+    int heatmap_point_size = 5;
+    
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-
-        long long current_time = chrono::duration_cast<chrono::seconds>(
-            chrono::system_clock::now().time_since_epoch()
-        ).count();
-
-        if (current_time - last_telephony_load > 2) {
-            last_telephony_load = current_time;
-            telephony_history.clear();
+        
+        if (shared->counter != last_count) {
+            last_count = shared->counter;
             
-            ifstream telephony_file("telephony_data.json");
-            if (telephony_file.is_open()) {
-                try {
-                    json all_data = json::parse(telephony_file);
-                    if (all_data.is_array()) {
-                        for (const auto& record : all_data) {
-                            TelephonyRecord tr;
-                            tr.timestamp = record.value("timestamp", 0LL);
-                            if (record.contains("data") && !record["data"].is_null()) {
-                                tr.data = record["data"].dump(2);
-                            } else {
-                                tr.data = "{}";
+            lock_guard<mutex> lock(shared->data_mutex);
+            locations.clear();
+            cells.clear();
+            traffic.clear();
+            
+            for (auto& item : shared->recent_records) {
+                if (item.contains("location")) {
+                    locations.push_back(item);
+                }
+                
+                if (item.contains("telephony")) {
+                    auto& tele = item["telephony"];
+                    for (auto& [key, val] : tele.items()) {
+                        if (key.find("cell_") == 0) {
+                            cells.push_back({key, val});
+                            
+                            int dbm = val.value("dbm", -120);
+                            int rsrp = val.value("rsrp", -140);
+                            int rsrq = val.value("rsrq", -20);
+                            int rssnr = val.value("rssnr", 0);
+                            
+                            int level = 0;
+                            if (dbm >= -70) level = 4;
+                            else if (dbm >= -80) level = 3;
+                            else if (dbm >= -90) level = 2;
+                            else if (dbm >= -100) level = 1;
+                            else level = 0;
+                            
+                            if (time_history.size() >= max_history) {
+                                time_history.pop_front();
+                                dbm_history.pop_front();
+                                level_history.pop_front();
+                                rsrp_history.pop_front();
+                                rsrq_history.pop_front();
+                                rssnr_history.pop_front();
                             }
-                            telephony_history.push_back(tr);
+                            
+                            time_history.push_back(sample_count);
+                            dbm_history.push_back(dbm);
+                            level_history.push_back(level);
+                            
+                            string type = val.value("type", "");
+                            if (type == "LTE" || type == "NR") {
+                                rsrp_history.push_back(rsrp);
+                                rsrq_history.push_back(rsrq);
+                                rssnr_history.push_back(rssnr);
+                            } else {
+                                rsrp_history.push_back(-140);
+                                rsrq_history.push_back(-20);
+                                rssnr_history.push_back(0);
+                            }
                         }
                     }
-                } catch (...) {}
+                    sample_count++;
+                }
+                
+                if (item.contains("traffic")) {
+                    traffic.push_back(item["traffic"]);
+                }
             }
         }
-
+        
+        if (locations.size() != last_points_count) {
+            last_points_count = locations.size();
+            load_points_from_json(map_points);
+        }
+        
+        if (prev_filter_location != shared->filter_location) {
+            send_filter_command(shared, "location", shared->filter_location);
+            prev_filter_location = shared->filter_location;
+        }
+        if (prev_filter_telephony != shared->filter_telephony) {
+            send_filter_command(shared, "telephony", shared->filter_telephony);
+            prev_filter_telephony = shared->filter_telephony;
+        }
+        if (prev_filter_traffic != shared->filter_traffic) {
+            send_filter_command(shared, "traffic", shared->filter_traffic);
+            prev_filter_traffic = shared->filter_traffic;
+        }
+        if (prev_filter_lte != shared->filter_lte) {
+            send_filter_command(shared, "lte", shared->filter_lte);
+            prev_filter_lte = shared->filter_lte;
+        }
+        if (prev_filter_gsm != shared->filter_gsm) {
+            send_filter_command(shared, "gsm", shared->filter_gsm);
+            prev_filter_gsm = shared->filter_gsm;
+        }
+        if (prev_filter_wcdma != shared->filter_wcdma) {
+            send_filter_command(shared, "wcdma", shared->filter_wcdma);
+            prev_filter_wcdma = shared->filter_wcdma;
+        }
+        
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        NewFrame();
-
-        const ImGuiViewport* viewport = GetMainViewport();
-        SetNextWindowPos(viewport->Pos);
-        SetNextWindowSize(viewport->Size);
-        SetNextWindowViewport(viewport->ID);
-
-        Begin("GPS Server Monitor", nullptr, 
-            ImGuiWindowFlags_NoTitleBar | 
-            ImGuiWindowFlags_NoResize | 
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_NoSavedSettings);
-
-        Columns(2, "MainColumns", false);
-        SetColumnWidth(0, 600);
-
-        BeginChild("CurrentData", ImVec2(0, 0), true);
+        ImGui::NewFrame();
         
-        PushFont(io.Fonts->Fonts[0]);
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::Begin("GPS Monitor Pro", NULL, 
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
+            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
         
-        TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "CURRENT GPS POSITION");
-        Separator();
-        Spacing();
-
-        {
-            lock_guard<mutex> lock(shared->data_mutex);
+        if (ImGui::BeginTabBar("Tabs", ImGuiTabBarFlags_FittingPolicyScroll)) {
             
-            Text("Total Records: "); 
-            SameLine(); 
-            TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d", shared->counter);
-
-            Spacing();
-            SeparatorText("COORDINATES");
-            
-            Text("Latitude:"); 
-            SameLine(180); 
-            TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%.6f", shared->current_location.latitude);
-            
-            Text("Longitude:"); 
-            SameLine(180); 
-            TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%.6f", shared->current_location.longitude);
-            
-            Text("Altitude:"); 
-            SameLine(180); 
-            TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%.2f m", shared->current_location.altitude);
-            
-            Text("Accuracy:"); 
-            SameLine(180); 
-            TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%.1f m", shared->current_location.accuracy);
-            
-            Text("Timestamp:"); 
-            SameLine(180); 
-            TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", format_time(shared->current_location.timestamp).c_str());
-
-            Spacing();
-            SeparatorText("ACTIVITY");
-            
-            float activity_indicator = (shared->counter > 0) ? 1.0f : 0.0f;
-            ProgressBar(activity_indicator, ImVec2(-1, 30), shared->counter > 0 ? "Active" : "Waiting for data");
-        }
-
-        Spacing();
-        Separator();
-
-        TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "CONTROL");
-        Spacing();
-        
-        if (Button("Clear Log Files", ImVec2(220, 45))) {
-            ofstream("location_data.json").close();
-            ofstream("telephony_data.json").close();
-            ofstream("traffic_data.json").close();
-            ofstream("location_log.txt").close();
-        }
-        
-        SameLine();
-        
-        if (Button("Reset Counter", ImVec2(220, 45))) {
-            lock_guard<mutex> lock(shared->data_mutex);
-            shared->counter = 0;
-            shared->recent_records.clear();
-        }
-
-        PopFont();
-        EndChild();
-        NextColumn();
-
-        BeginChild("HistoryData", ImVec2(0, 0), true);
-        PushFont(io.Fonts->Fonts[0]);
-
-        if (BeginTabBar("DataTabs", ImGuiTabBarFlags_FittingPolicyScroll)) {
-            
-            if (BeginTabItem("Location History")) {
-                BeginChild("HistoryList", ImVec2(0, 0), true);
+            if (ImGui::BeginTabItem("Dashboard")) {
+                ImGui::Text("=== System Overview ===");
+                ImGui::Separator();
                 
-                lock_guard<mutex> lock(shared->data_mutex);
+                ImGui::Columns(2);
+                ImGui::Text("Total Records: %d", shared->counter);
+                ImGui::Text("Active Cells: %zu", cells.size());
+                ImGui::NextColumn();
+                ImGui::Text("Traffic Records: %zu", traffic.size());
+                ImGui::Text("Graph Points: %zu", time_history.size());
+                ImGui::Text("Map Points: %zu", map_points.size());
+                ImGui::Columns(1);
                 
-                if (shared->recent_records.empty()) {
-                    TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No records yet...");
-                } else {
-                    if (BeginTable("LocationTable", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, GetContentRegionAvail().y - 30))) {
-                        TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 60);
-                        TableSetupColumn("Latitude", ImGuiTableColumnFlags_WidthFixed, 180);
-                        TableSetupColumn("Longitude", ImGuiTableColumnFlags_WidthFixed, 180);
-                        TableSetupColumn("Altitude", ImGuiTableColumnFlags_WidthFixed, 120);
-                        TableSetupColumn("Accuracy", ImGuiTableColumnFlags_WidthFixed, 120);
-                        TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 220);
-                        TableHeadersRow();
-
-                        int idx = 0;
-                        for (auto it = shared->recent_records.rbegin(); it != shared->recent_records.rend(); ++it) {
-                            TableNextRow();
-                            
-                            double lat = 0.0, lon = 0.0, alt = 0.0, acc = 0.0;
-                            long long ts = 0;
-                            
-                            if (it->contains("location") && !(*it)["location"].is_null()) {
-                                auto& loc = (*it)["location"];
-                                lat = loc.value("Latitude", 0.0);
-                                lon = loc.value("Longitude", 0.0);
-                                alt = loc.value("Altitude", 0.0);
-                                acc = loc.value("Accuracy", 0.0);
-                                ts = loc.value("timestamp", 0LL);
-                            } else {
-                                lat = it->value("Latitude", 0.0);
-                                lon = it->value("Longitude", 0.0);
-                                alt = it->value("Altitude", 0.0);
-                                acc = it->value("Accuracy", 0.0);
-                                ts = it->value("timestamp", 0LL);
-                            }
-                            
-                            TableSetColumnIndex(0); Text("%d", shared->counter - idx);
-                            TableSetColumnIndex(1); Text("%.4f", lat);
-                            TableSetColumnIndex(2); Text("%.4f", lon);
-                            TableSetColumnIndex(3); Text("%.1f", alt);
-                            TableSetColumnIndex(4); Text("%.1f", acc);
-                            TableSetColumnIndex(5); Text("%s", format_time(ts).c_str());
-                            
-                            idx++;
-                        }
-                        EndTable();
-                    }
+                ImGui::Separator();
+                
+                if (!cells.empty()) {
+                    auto& [key, cell] = *cells.rbegin();
+                    ImGui::Text("=== Last Cell Info ===");
+                    ImGui::Text("Type: %s", cell.value("type", "Unknown").c_str());
+                    ImGui::Text("PCI: %d", cell.value("pci", 0));
+                    ImGui::Text("RSRP: %d dBm", cell.value("rsrp", -140));
+                    ImGui::Text("RSRQ: %d dB", cell.value("rsrq", -20));
+                    ImGui::Text("RSSNR: %d dB", cell.value("rssnr", 0));
+                    ImGui::Text("dBm: %d", cell.value("dbm", -120));
                 }
                 
-                EndChild();
-                EndTabItem();
+                ImGui::EndTabItem();
             }
-
-            if (BeginTabItem("Telephony Data")) {
-                BeginChild("TelephonyList", ImVec2(0, 0), true);
+            
+            if (ImGui::BeginTabItem("Heatmap")) {
+    ImGui::Checkbox("Show Mini-map", &show_heatmap);
+    ImGui::SameLine();
+    ImGui::SliderInt("Point Size", &heatmap_point_size, 2, 10);
+    ImGui::SameLine();
+    if (ImGui::Button("Reload Data")) {
+        load_points_from_json(map_points);
+    }
+    
+    if (ImGui::Button("Open in Browser (Full Map)")) {
+        generate_html_map(map_points, "heatmap.html");
+        system("xdg-open heatmap.html"); // Linux
+        // system("open heatmap.html"); // Mac
+        // system("start heatmap.html"); // Windows
+    }
+    
+    ImGui::Separator();
+    
+    if (show_heatmap) {
+        draw_minimap(map_points, heatmap_point_size);
+    }
+    
+    ImGui::EndTabItem();
+}
+            
+            if (ImGui::BeginTabItem("Filters")) {
+                ImGui::Text("=== Data Type Filters ===");
+                ImGui::Separator();
                 
-                if (telephony_history.empty()) {
-                    TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No telephony data yet...");
-                } else {
-                    if (BeginTable("TelephonyTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, GetContentRegionAvail().y - 30))) {
-                        TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 60);
-                        TableSetupColumn("Timestamp", ImGuiTableColumnFlags_WidthFixed, 220);
-                        TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
-                        TableHeadersRow();
-
-                        int idx = 1;
-                        for (auto it = telephony_history.rbegin(); it != telephony_history.rend(); ++it) {
-                            TableNextRow();
-                            
-                            TableSetColumnIndex(0); Text("%d", idx++);
-                            TableSetColumnIndex(1); Text("%s", format_time(it->timestamp).c_str());
-                            
-                            TableSetColumnIndex(2);
-                            string preview = format_json_compact(it->data);
-                            if (Selectable(preview.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
-                                OpenPopup("TelephonyDetails");
-                            }
-                            
-                            if (BeginPopup("TelephonyDetails")) {
-                                TextWrapped("%s", it->data.c_str());
-                                EndPopup();
-                            }
-                        }
-                        EndTable();
-                    }
+                ImGui::Checkbox("Location Data", &shared->filter_location);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_location ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_location ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Checkbox("Telephony Data (Cell Towers)", &shared->filter_telephony);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_telephony ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_telephony ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Checkbox("Traffic Data", &shared->filter_traffic);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_traffic ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_traffic ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Separator();
+                ImGui::Text("=== Network Type Filters ===");
+                ImGui::Separator();
+                
+                ImGui::Checkbox("4G/LTE Cells", &shared->filter_lte);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_lte ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_lte ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Checkbox("2G/GSM Cells", &shared->filter_gsm);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_gsm ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_gsm ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Checkbox("3G/WCDMA Cells", &shared->filter_wcdma);
+                ImGui::SameLine();
+                ImGui::TextColored(shared->filter_wcdma ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
+                    shared->filter_wcdma ? "[ENABLED]" : "[DISABLED]");
+                
+                ImGui::Separator();
+                
+                if (ImGui::Button("Enable All", ImVec2(120, 30))) {
+                    shared->filter_location = true;
+                    shared->filter_telephony = true;
+                    shared->filter_traffic = true;
+                    shared->filter_lte = true;
+                    shared->filter_gsm = true;
+                    shared->filter_wcdma = true;
                 }
                 
-                EndChild();
-                EndTabItem();
-            }
-
-            if (BeginTabItem("Traffic Data")) {
-                BeginChild("TrafficList", ImVec2(0, 0), true);
+                ImGui::SameLine();
                 
-                if (traffic_history.empty()) {
-                    if (current_time - last_traffic_load > 2) {
-                        last_traffic_load = current_time;
-                        traffic_history.clear();
+                if (ImGui::Button("Disable All", ImVec2(120, 30))) {
+                    shared->filter_location = false;
+                    shared->filter_telephony = false;
+                    shared->filter_traffic = false;
+                    shared->filter_lte = false;
+                    shared->filter_gsm = false;
+                    shared->filter_wcdma = false;
+                }
+                
+                ImGui::SameLine();
+                
+                if (ImGui::Button("Send Filters Now", ImVec2(150, 30))) {
+                    send_filter_command(shared, "location", shared->filter_location);
+                    send_filter_command(shared, "telephony", shared->filter_telephony);
+                    send_filter_command(shared, "traffic", shared->filter_traffic);
+                    send_filter_command(shared, "lte", shared->filter_lte);
+                    send_filter_command(shared, "gsm", shared->filter_gsm);
+                    send_filter_command(shared, "wcdma", shared->filter_wcdma);
+                }
+                
+                ImGui::Separator();
+                
+                ImGui::Text("Command Socket Status:");
+                ImGui::SameLine();
+                
+                if (g_command_socket) {
+                    ImGui::TextColored(ImVec4(0,1,0,1), "CONNECTED");
+                } else {
+                    ImGui::TextColored(ImVec4(1,0,0,1), "DISCONNECTED");
+                }
+                
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Signal Graphs")) {
+                if (dbm_history.empty() && rsrp_history.empty()) {
+                    ImGui::TextColored(ImVec4(1,1,0,1), "No signal data. Waiting for data...");
+                } else {
+                    if (!time_history.empty()) {
+                        vector<float> times(time_history.begin(), time_history.end());
                         
-                        ifstream traffic_file("traffic_data.json");
-                        if (traffic_file.is_open()) {
-                            try {
-                                json all_data = json::parse(traffic_file);
-                                if (all_data.is_array()) {
-                                    for (const auto& record : all_data) {
-                                        TrafficRecord tr;
-                                        tr.timestamp = record.value("timestamp", 0LL);
-                                        tr.mobile_rx = record.value("mobile_rx_bytes", 0LL);
-                                        tr.mobile_tx = record.value("mobile_tx_bytes", 0LL);
-                                        tr.total_rx = record.value("total_rx_bytes", 0LL);
-                                        tr.total_tx = record.value("total_tx_bytes", 0LL);
-                                        
-                                        if (record.contains("top_apps") && !record["top_apps"].is_null()) {
-                                            for (auto& [key, val] : record["top_apps"].items()) {
-                                                tr.top_apps[key] = val;
-                                            }
-                                        }
-                                        traffic_history.push_back(tr);
-                                    }
-                                }
-                            } catch (...) {}
-                        }
-                    }
-                    
-                    if (traffic_history.empty()) {
-                        TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No traffic data yet...");
-                    }
-                }
-                
-                if (!traffic_history.empty()) {
-                    if (BeginTabBar("TrafficTabs")) {
-                        if (BeginTabItem("Summary")) {
-                            if (BeginTable("TrafficTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, GetContentRegionAvail().y - 30))) {
-                                TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 220);
-                                TableSetupColumn("Mobile RX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("Mobile TX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("Total RX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("Total TX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableHeadersRow();
-
-                                for (auto it = traffic_history.rbegin(); it != traffic_history.rend(); ++it) {
-                                    TableNextRow();
-                                    
-                                    TableSetColumnIndex(0); Text("%s", format_time(it->timestamp).c_str());
-                                    TableSetColumnIndex(1); Text("%s", format_bytes(it->mobile_rx).c_str());
-                                    TableSetColumnIndex(2); Text("%s", format_bytes(it->mobile_tx).c_str());
-                                    TableSetColumnIndex(3); Text("%s", format_bytes(it->total_rx).c_str());
-                                    TableSetColumnIndex(4); Text("%s", format_bytes(it->total_tx).c_str());
-                                }
-                                EndTable();
+                        if (!dbm_history.empty()) {
+                            vector<float> dbm_vals(dbm_history.begin(), dbm_history.end());
+                            
+                            if (ImPlot::BeginPlot("Signal Strength (dBm)", ImVec2(-1, 200))) {
+                                ImPlot::SetupAxes("Samples", "dBm");
+                                ImPlot::SetupAxisLimits(ImAxis_Y1, -120, -50);
+                                ImPlot::PlotLine("dBm", times.data(), dbm_vals.data(), dbm_vals.size());
+                                ImPlot::EndPlot();
                             }
-                            EndTabItem();
                         }
                         
-                        if (BeginTabItem("Top Apps")) {
-                            if (BeginTable("AppsTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, GetContentRegionAvail().y - 30))) {
-                                TableSetupColumn("App Name", ImGuiTableColumnFlags_WidthFixed, 250);
-                                TableSetupColumn("RX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("TX", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("Total", ImGuiTableColumnFlags_WidthFixed, 150);
-                                TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 220);
-                                TableHeadersRow();
-
-                                for (auto it = traffic_history.rbegin(); it != traffic_history.rend(); ++it) {
-                                    for (const auto& [pkg, app] : it->top_apps) {
-                                        TableNextRow();
-                                        
-                                        string app_name = app.value("app_name", pkg);
-                                        long long rx = app.value("rx_bytes", 0LL);
-                                        long long tx = app.value("tx_bytes", 0LL);
-                                        long long total = app.value("total_bytes", 0LL);
-                                        
-                                        TableSetColumnIndex(0); Text("%s", app_name.c_str());
-                                        TableSetColumnIndex(1); Text("%s", format_bytes(rx).c_str());
-                                        TableSetColumnIndex(2); Text("%s", format_bytes(tx).c_str());
-                                        TableSetColumnIndex(3); Text("%s", format_bytes(total).c_str());
-                                        TableSetColumnIndex(4); Text("%s", format_time(it->timestamp).c_str());
-                                    }
-                                }
-                                EndTable();
+                        if (!rsrp_history.empty()) {
+                            vector<float> rsrp_vals(rsrp_history.begin(), rsrp_history.end());
+                            
+                            if (ImPlot::BeginPlot("RSRP (LTE)", ImVec2(-1, 200))) {
+                                ImPlot::SetupAxes("Samples", "dBm");
+                                ImPlot::SetupAxisLimits(ImAxis_Y1, -140, -60);
+                                ImPlot::PlotLine("RSRP", times.data(), rsrp_vals.data(), rsrp_vals.size());
+                                ImPlot::EndPlot();
                             }
-                            EndTabItem();
                         }
-                        EndTabBar();
+                        
+                        if (!rsrq_history.empty()) {
+                            vector<float> rsrq_vals(rsrq_history.begin(), rsrq_history.end());
+                            
+                            if (ImPlot::BeginPlot("RSRQ", ImVec2(-1, 200))) {
+                                ImPlot::SetupAxes("Samples", "dB");
+                                ImPlot::SetupAxisLimits(ImAxis_Y1, -20, -3);
+                                ImPlot::PlotLine("RSRQ", times.data(), rsrq_vals.data(), rsrq_vals.size());
+                                ImPlot::EndPlot();
+                            }
+                        }
+                        
+                        if (!rssnr_history.empty()) {
+                            vector<float> rssnr_vals(rssnr_history.begin(), rssnr_history.end());
+                            
+                            if (ImPlot::BeginPlot("RSSNR", ImVec2(-1, 200))) {
+                                ImPlot::SetupAxes("Samples", "dB");
+                                ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 30);
+                                ImPlot::PlotLine("RSSNR", times.data(), rssnr_vals.data(), rssnr_vals.size());
+                                ImPlot::EndPlot();
+                            }
+                        }
+                        
+                        if (!level_history.empty()) {
+                            vector<float> level_vals(level_history.begin(), level_history.end());
+                            
+                            if (ImPlot::BeginPlot("Signal Level (0-4)", ImVec2(-1, 150))) {
+                                ImPlot::SetupAxes("Samples", "Level");
+                                ImPlot::SetupAxisLimits(ImAxis_Y1, -0.5, 4.5);
+                                ImPlot::PlotLine("Level", times.data(), level_vals.data(), level_vals.size());
+                                ImPlot::EndPlot();
+                            }
+                        }
                     }
                 }
-                
-                EndChild();
-                EndTabItem();
-            }
-
-            if (BeginTabItem("Statistics")) {
-                lock_guard<mutex> lock(shared->data_mutex);
-                
-                Spacing();
-                TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "SERVER STATISTICS");
-                Separator();
-                Spacing();
-
-                Text("Total location records:"); SameLine(300); 
-                TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d", shared->counter);
-                
-                Text("Total telephony records:"); SameLine(300); 
-                TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d", (int)telephony_history.size());
-                
-                Text("Total traffic records:"); SameLine(300); 
-                TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d", (int)traffic_history.size());
-                
-                Text("Records in memory:"); SameLine(300); 
-                TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%d", (int)shared->recent_records.size());
-                
-                if (shared->recent_records.size() > 1) {
-                    Spacing();
-                    SeparatorText("Altitude Trend");
-                    
-                    vector<float> altitudes;
-                    for (const auto& record : shared->recent_records) {
-                        float alt = 0.0f;
-                        if (record.contains("location") && !record["location"].is_null()) {
-                            alt = record["location"].value("Altitude", 0.0f);
-                        } else {
-                            alt = record.value("Altitude", 0.0f);
-                        }
-                        altitudes.push_back(alt);
-                    }
-                    
-                    PlotLines("##Altitude", altitudes.data(), altitudes.size(), 0, NULL, 0.0f, 100.0f, ImVec2(0, 150));
-                }
-                
-                EndTabItem();
-            }
-
-            if (BeginTabItem("Server Info")) {
-                Spacing();
-                
-                SeparatorText("CONFIGURATION");
-                Text("ZeroMQ endpoint:"); SameLine(300); 
-                TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "tcp://*:8080");
-                
-                Text("Data files:"); SameLine(300); 
-                TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "location_data.json");
-                SameLine();
-                TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "telephony_data.json");
-                SameLine();
-                TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "traffic_data.json");
-                SameLine();
-                TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "location_log.txt");
-                
-                Spacing();
-                SeparatorText("STATUS");
-                TextWrapped("Server is running and accepting connections. GPS, telephony and traffic data are being saved to separate JSON files.");
-                
-                Spacing();
-                SeparatorText("FORMATS");
-                BulletText("Location data: Stored in location_data.json as array");
-                BulletText("Telephony data: Stored in telephony_data.json with timestamps");
-                BulletText("Traffic data: Stored in traffic_data.json with app statistics");
-                BulletText("Text log: Human-readable format in location_log.txt");
-                
-                EndTabItem();
+                ImGui::EndTabItem();
             }
             
-            EndTabBar();
+            if (ImGui::BeginTabItem("Cell Info")) {
+                if (cells.empty()) {
+                    ImGui::Text("No cell data");
+                } else {
+                    ImGui::BeginChild("CellList");
+                    
+                    map<string, int> type_count;
+                    for (auto& [key, cell] : cells) {
+                        string type = cell.value("type", "Unknown");
+                        type_count[type]++;
+                    }
+                    
+                    ImGui::Text("Cell Types:");
+                    for (auto& [type, count] : type_count) {
+                        ImGui::Text("  %s: %d", type.c_str(), count);
+                    }
+                    ImGui::Separator();
+                    
+                    for (auto it = cells.rbegin(); it != cells.rend(); ++it) {
+                        auto& [key, cell] = *it;
+                        
+                        string type = cell.value("type", "Unknown");
+                        int pci = cell.value("pci", 0);
+                        int earfcn = cell.value("earfcn", 0);
+                        int tac = cell.value("tac", 0);
+                        int ci = cell.value("ci", 0);
+                        int mcc = cell.value("mcc", 0);
+                        int mnc = cell.value("mnc", 0);
+                        
+                        int dbm = cell.value("dbm", -120);
+                        int rsrp = cell.value("rsrp", -140);
+                        int rsrq = cell.value("rsrq", -20);
+                        int rssnr = cell.value("rssnr", 0);
+                        
+                        if (type == "LTE") ImGui::TextColored(ImVec4(0,1,0,1), "[4G] %s", key.c_str());
+                        else if (type == "NR") ImGui::TextColored(ImVec4(1,0,1,1), "[5G] %s", key.c_str());
+                        else ImGui::Text("[%s] %s", type.c_str(), key.c_str());
+                        
+                        ImGui::Indent(20);
+                        
+                        ImGui::Text("PCI: %d | EARFCN: %d | TAC: %d | CI: %d", pci, earfcn, tac, ci);
+                        ImGui::Text("MCC: %d | MNC: %d", mcc, mnc);
+                        
+                        ImVec4 color;
+                        if (rsrp >= -80) color = ImVec4(0,1,0,1);
+                        else if (rsrp >= -90) color = ImVec4(0,1,0,0.7);
+                        else if (rsrp >= -100) color = ImVec4(1,1,0,1);
+                        else if (rsrp >= -110) color = ImVec4(1,0.5,0,1);
+                        else color = ImVec4(1,0,0,1);
+                        
+                        ImGui::TextColored(color, "RSRP: %d dBm | RSRQ: %d dB | RSSNR: %d dB", rsrp, rsrq, rssnr);
+                        ImGui::Text("dBm: %d | Level: %d", dbm, cell.value("level", 0));
+                        
+                        ImGui::Unindent(20);
+                        ImGui::Separator();
+                    }
+                    
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Locations")) {
+                if (locations.empty()) {
+                    ImGui::Text("No location data");
+                } else {
+                    ImGui::BeginChild("Scroll");
+                    for (size_t i = 0; i < locations.size(); i++) {
+                        auto& item = locations[i];
+                        long long ts = item.value("timestamp", 0LL);
+                        
+                        if (item.contains("location")) {
+                            auto& loc = item["location"];
+                            double lat = loc.value("latitude", 0.0);
+                            double lon = loc.value("longitude", 0.0);
+                            double alt = loc.value("altitude", 0.0);
+                            double acc = loc.value("accuracy", 0.0);
+                            
+                            ImGui::Text("[%zu] %s", i+1, formatTime(ts).c_str());
+                            ImGui::Text("  Lat: %.6f, Lon: %.6f", lat, lon);
+                            ImGui::Text("  Alt: %.1fm, Acc: %.1fm", alt, acc);
+                            ImGui::Separator();
+                        }
+                    }
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Traffic")) {
+                if (traffic.empty()) {
+                    ImGui::Text("No traffic data");
+                } else {
+                    ImGui::BeginChild("TrafficList");
+                    
+                    long long total_rx_sum = 0;
+                    long long total_tx_sum = 0;
+                    
+                    for (auto it = traffic.rbegin(); it != traffic.rend(); ++it) {
+                        auto& t = *it;
+                        long long total_rx = t.value("total_rx_bytes", t.value("total_rx", 0LL));
+                        long long total_tx = t.value("total_tx_bytes", t.value("total_tx", 0LL));
+                        
+                        total_rx_sum += total_rx;
+                        total_tx_sum += total_tx;
+                        
+                        ImGui::Text("RX: %s", formatBytes(total_rx).c_str());
+                        ImGui::Text("TX: %s", formatBytes(total_tx).c_str());
+                        
+                        if (t.contains("top_apps") && !t["top_apps"].empty()) {
+                            ImGui::Indent();
+                            for (auto& [app, bytes] : t["top_apps"].items()) {
+                                ImGui::Text("%s: %s", app.c_str(), formatBytes(bytes.get<long long>()).c_str());
+                            }
+                            ImGui::Unindent();
+                        }
+                        ImGui::Separator();
+                    }
+                    
+                    ImGui::Text("TOTAL - RX: %s", formatBytes(total_rx_sum).c_str());
+                    ImGui::Text("TOTAL - TX: %s", formatBytes(total_tx_sum).c_str());
+                    
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
+            }
+            
+            ImGui::EndTabBar();
         }
-
-        PopFont();
-        EndChild();
-        Columns(1);
-        End();
-
-        Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
+        
+        ImGui::Separator();
+        ImGui::Text("Status: ");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0,1,0,1), "● ONLINE");
+        ImGui::SameLine();
+        ImGui::Text(" | Records: %d | Cells: %zu | Traffic: %zu | Samples: %zu | Map Points: %zu", 
+                   shared->counter, cells.size(), traffic.size(), time_history.size(), map_points.size());
+        
+        ImGui::End();
+        ImGui::Render();
+        
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());
-
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
-        this_thread::sleep_for(chrono::milliseconds(16));
     }
-
+    
+    delete g_command_socket;
+    delete g_context;
+    
+    ImPlot::DestroyContext();
+    ImGui::DestroyContext();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-    DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
 }

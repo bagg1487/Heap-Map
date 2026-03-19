@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I/usr/include
+CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I./third-party/implot -I/usr/include
 LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11
 
 SRC_DIR = src
@@ -18,10 +18,18 @@ IMGUI_BACKENDS = \
 
 IMGUI_SOURCES = $(IMGUI_CORE) $(IMGUI_BACKENDS)
 
-SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/gui.cpp $(SRC_DIR)/server.cpp
+IMPLOT_SOURCES = \
+    $(THIRD_PARTY_DIR)/implot/implot.cpp \
+    $(THIRD_PARTY_DIR)/implot/implot_items.cpp
+
+SOURCES = $(SRC_DIR)/main.cpp \
+          $(SRC_DIR)/gui.cpp \
+          $(SRC_DIR)/server.cpp \
+          $(SRC_DIR)/heatmap.cpp
 
 IMGUI_OBJECTS = $(patsubst $(THIRD_PARTY_DIR)/%.cpp,$(BUILD_DIR)/third-party/%.o,$(IMGUI_SOURCES))
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES)) $(IMGUI_OBJECTS)
+IMPLOT_OBJECTS = $(patsubst $(THIRD_PARTY_DIR)/%.cpp,$(BUILD_DIR)/third-party/%.o,$(IMPLOT_SOURCES))
+OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES)) $(IMGUI_OBJECTS) $(IMPLOT_OBJECTS)
 
 TARGET = $(BUILD_DIR)/gps_server
 
@@ -29,7 +37,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(dir $@)
-	$(CXX) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 	@echo "Build complete! Run ./$(TARGET)"
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp

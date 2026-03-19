@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <sstream>
+#include <filesystem>
 
 #ifndef _WIN32
 #include <ifaddrs.h>
@@ -16,6 +17,7 @@
 
 using namespace std;
 using namespace zmq;
+namespace fs = std::filesystem;
 
 string get_local_ip() {
     string ip = "127.0.0.1";
@@ -77,6 +79,8 @@ void run_server(SharedData* shared) {
     cout << "=====================================" << endl;
  
     bool phone_connected = false;
+    
+    fs::create_directory("data");
 
     while (true) {
         message_t msg;
@@ -88,6 +92,30 @@ void run_server(SharedData* shared) {
         if (raw_text == "ping") {
             socket.send(zmq::buffer("pong"), zmq::send_flags::none);
             continue;
+        }
+        
+        if (raw_text.find("filter") != string::npos) {
+            try {
+                json cmd = json::parse(raw_text);
+                if (cmd["type"] == "filter") {
+                    string filter_name = cmd["filter"];
+                    bool value = cmd["value"];
+                    
+                    if (filter_name == "location") shared->filter_location = value;
+                    else if (filter_name == "telephony") shared->filter_telephony = value;
+                    else if (filter_name == "traffic") shared->filter_traffic = value;
+                    else if (filter_name == "lte") shared->filter_lte = value;
+                    else if (filter_name == "gsm") shared->filter_gsm = value;
+                    else if (filter_name == "wcdma") shared->filter_wcdma = value;
+                    
+                    cout << "Filter updated: " << filter_name << " = " << value << endl;
+                    socket.send(zmq::buffer("OK"), zmq::send_flags::none);
+                    continue;
+                }
+            } catch (...) {
+                socket.send(zmq::buffer("ERROR"), zmq::send_flags::none);
+                continue;
+            }
         }
         
         if (raw_text == "show") {
@@ -129,43 +157,109 @@ void run_server(SharedData* shared) {
                 shared->counter++;
             }
 
-            if (received_data.contains("traffic") && !received_data["traffic"].is_null() && !received_data["traffic"].empty()) {
-                json traffic_data = received_data["traffic"];
+            // Сохраняем все данные в один файл
+            json all_data;
+            string all_data_file = "data/all_data.json";
+            ifstream all_file(all_data_file);
+            if (all_file.is_open()) {
+                try {
+                    all_data = json::parse(all_file);
+                } catch (...) {
+                    all_data = json::array();
+                }
+            } else {
+                all_data = json::array();
+            }
+            
+            all_data.push_back(received_data);
+            
+            ofstream all_file_out(all_data_file);
+            all_file_out << all_data.dump(4);
+            
+            // Сохраняем каждый пакет в отдельный файл с таймстемпом
+            long long timestamp = received_data.value("timestamp", 0LL);
+            string filename = "data/data_" + to_string(timestamp) + ".json";
+            ofstream single_file_out(filename);
+            single_file_out << received_data.dump(4);
+            
+            // Сохраняем только локации
+            if (received_data.contains("location")) {
+                json location_only;
+                location_only["timestamp"] = timestamp;
+                location_only["location"] = received_data["location"];
                 
-                json all_traffic_data;
-                ifstream traffic_file("traffic_data.json");
-                if (traffic_file.is_open()) {
+                json all_locations;
+                string loc_file = "data/locations.json";
+                ifstream loc_file_in(loc_file);
+                if (loc_file_in.is_open()) {
                     try {
-                        all_traffic_data = json::parse(traffic_file);
+                        all_locations = json::parse(loc_file_in);
                     } catch (...) {
-                        all_traffic_data = json::array();
+                        all_locations = json::array();
                     }
                 } else {
-                    all_traffic_data = json::array();
+                    all_locations = json::array();
                 }
                 
-                json traffic_record;
-                traffic_record["mobile_rx_bytes"] = traffic_data.value("mobile_rx_bytes", 0LL);
-                traffic_record["mobile_tx_bytes"] = traffic_data.value("mobile_tx_bytes", 0LL);
-                traffic_record["total_rx_bytes"] = traffic_data.value("total_rx_bytes", 0LL);
-                traffic_record["total_tx_bytes"] = traffic_data.value("total_tx_bytes", 0LL);
-                traffic_record["mobile_total_bytes"] = traffic_data.value("mobile_total_bytes", 0LL);
-                traffic_record["total_bytes"] = traffic_data.value("total_bytes", 0LL);
+                all_locations.push_back(location_only);
                 
-                if (traffic_data.contains("top_apps") && !traffic_data["top_apps"].is_null()) {
-                    traffic_record["top_apps"] = traffic_data["top_apps"];
+                ofstream loc_file_out(loc_file);
+                loc_file_out << all_locations.dump(4);
+            }
+            
+            // Сохраняем только данные сотовых вышек
+            if (received_data.contains("telephony")) {
+                json telephony_only;
+                telephony_only["timestamp"] = timestamp;
+                telephony_only["telephony"] = received_data["telephony"];
+                
+                json all_telephony;
+                string tele_file = "data/telephony.json";
+                ifstream tele_file_in(tele_file);
+                if (tele_file_in.is_open()) {
+                    try {
+                        all_telephony = json::parse(tele_file_in);
+                    } catch (...) {
+                        all_telephony = json::array();
+                    }
+                } else {
+                    all_telephony = json::array();
                 }
                 
-                traffic_record["timestamp"] = received_data.value("timestamp", 0LL);
-                all_traffic_data.push_back(traffic_record);
+                all_telephony.push_back(telephony_only);
                 
-                ofstream traffic_file_out("traffic_data.json");
-                traffic_file_out << all_traffic_data.dump(4);
+                ofstream tele_file_out(tele_file);
+                tele_file_out << all_telephony.dump(4);
+            }
+            
+            // Сохраняем только данные трафика
+            if (received_data.contains("traffic")) {
+                json traffic_only;
+                traffic_only["timestamp"] = timestamp;
+                traffic_only["traffic"] = received_data["traffic"];
+                
+                json all_traffic;
+                string traffic_file = "data/traffic.json";
+                ifstream traffic_file_in(traffic_file);
+                if (traffic_file_in.is_open()) {
+                    try {
+                        all_traffic = json::parse(traffic_file_in);
+                    } catch (...) {
+                        all_traffic = json::array();
+                    }
+                } else {
+                    all_traffic = json::array();
+                }
+                
+                all_traffic.push_back(traffic_only);
+                
+                ofstream traffic_file_out(traffic_file);
+                traffic_file_out << all_traffic.dump(4);
             }
 
             string response = "OK:" + to_string(shared->counter);
             socket.send(zmq::buffer(response), zmq::send_flags::none);
-            cout << "Данные #" << shared->counter << " сохранены" << endl;
+            cout << "Данные #" << shared->counter << " сохранены в папку data/" << endl;
             
         } catch (const exception& e) {
             cerr << "ERROR: " << e.what() << endl;
