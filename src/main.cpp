@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "heatmap.hpp"
 #include <thread>
 
 using namespace std;

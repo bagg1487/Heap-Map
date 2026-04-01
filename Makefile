@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I./third-party/implot -I/usr/include
-LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11
+CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I./third-party/implot -I/usr/include -I/usr/include/python3.10 -I/usr/include/postgresql
+LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11 -lpython3.10 -lpqxx -lpq
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -59,4 +59,10 @@ run: $(TARGET)
 debug: CXXFLAGS += -g -O0
 debug: clean all
 
-.PHONY: all clean run debug
+generate_heatmap:
+	python3 generate_heatmap.py
+
+install_python_deps:
+	pip3 install pillow
+
+.PHONY: all clean run debug generate_heatmap install_python_deps

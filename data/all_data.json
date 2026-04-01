@@ -17369,5 +17369,408 @@
             "total_rx_bytes": 58288209733,
             "total_tx_bytes": 21210337964
         }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501004399,
+        "traffic": {
+            "mobile_rx_bytes": 6559605495,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333445053,
+            "total_tx_bytes": 27507462798
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501009985,
+        "traffic": {
+            "mobile_rx_bytes": 6559605647,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333465634,
+            "total_tx_bytes": 27507481966
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501015462,
+        "traffic": {
+            "mobile_rx_bytes": 6559605799,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333471563,
+            "total_tx_bytes": 27507490177
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501021000,
+        "traffic": {
+            "mobile_rx_bytes": 6559605799,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333507954,
+            "total_tx_bytes": 27507532955
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501026464,
+        "traffic": {
+            "mobile_rx_bytes": 6559606207,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333556779,
+            "total_tx_bytes": 27507583781
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501031899,
+        "traffic": {
+            "mobile_rx_bytes": 6559606283,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333566475,
+            "total_tx_bytes": 27507595876
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501037345,
+        "traffic": {
+            "mobile_rx_bytes": 6559606359,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333611070,
+            "total_tx_bytes": 27507641230
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501042807,
+        "traffic": {
+            "mobile_rx_bytes": 6559606511,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335749489,
+            "total_tx_bytes": 27511839254
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501048257,
+        "traffic": {
+            "mobile_rx_bytes": 6559606511,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335799027,
+            "total_tx_bytes": 27513109434
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501053717,
+        "traffic": {
+            "mobile_rx_bytes": 6559606587,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335858795,
+            "total_tx_bytes": 27514029432
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501059220,
+        "traffic": {
+            "mobile_rx_bytes": 6559606587,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335889804,
+            "total_tx_bytes": 27514685114
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501064929,
+        "traffic": {
+            "mobile_rx_bytes": 6559606663,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335928483,
+            "total_tx_bytes": 27514715907
+        }
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501070458,
+        "traffic": {
+            "mobile_rx_bytes": 6559606663,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335972161,
+            "total_tx_bytes": 27514760082
+        }
     }
 ]

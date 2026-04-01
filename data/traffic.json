@@ -682,5 +682,122 @@
             "total_rx_bytes": 58288209733,
             "total_tx_bytes": 21210337964
         }
+    },
+    {
+        "timestamp": 1774501004399,
+        "traffic": {
+            "mobile_rx_bytes": 6559605495,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333445053,
+            "total_tx_bytes": 27507462798
+        }
+    },
+    {
+        "timestamp": 1774501009985,
+        "traffic": {
+            "mobile_rx_bytes": 6559605647,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333465634,
+            "total_tx_bytes": 27507481966
+        }
+    },
+    {
+        "timestamp": 1774501015462,
+        "traffic": {
+            "mobile_rx_bytes": 6559605799,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333471563,
+            "total_tx_bytes": 27507490177
+        }
+    },
+    {
+        "timestamp": 1774501021000,
+        "traffic": {
+            "mobile_rx_bytes": 6559605799,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333507954,
+            "total_tx_bytes": 27507532955
+        }
+    },
+    {
+        "timestamp": 1774501026464,
+        "traffic": {
+            "mobile_rx_bytes": 6559606207,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333556779,
+            "total_tx_bytes": 27507583781
+        }
+    },
+    {
+        "timestamp": 1774501031899,
+        "traffic": {
+            "mobile_rx_bytes": 6559606283,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333566475,
+            "total_tx_bytes": 27507595876
+        }
+    },
+    {
+        "timestamp": 1774501037345,
+        "traffic": {
+            "mobile_rx_bytes": 6559606359,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69333611070,
+            "total_tx_bytes": 27507641230
+        }
+    },
+    {
+        "timestamp": 1774501042807,
+        "traffic": {
+            "mobile_rx_bytes": 6559606511,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335749489,
+            "total_tx_bytes": 27511839254
+        }
+    },
+    {
+        "timestamp": 1774501048257,
+        "traffic": {
+            "mobile_rx_bytes": 6559606511,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335799027,
+            "total_tx_bytes": 27513109434
+        }
+    },
+    {
+        "timestamp": 1774501053717,
+        "traffic": {
+            "mobile_rx_bytes": 6559606587,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335858795,
+            "total_tx_bytes": 27514029432
+        }
+    },
+    {
+        "timestamp": 1774501059220,
+        "traffic": {
+            "mobile_rx_bytes": 6559606587,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335889804,
+            "total_tx_bytes": 27514685114
+        }
+    },
+    {
+        "timestamp": 1774501064929,
+        "traffic": {
+            "mobile_rx_bytes": 6559606663,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335928483,
+            "total_tx_bytes": 27514715907
+        }
+    },
+    {
+        "timestamp": 1774501070458,
+        "traffic": {
+            "mobile_rx_bytes": 6559606663,
+            "mobile_tx_bytes": 638004921,
+            "total_rx_bytes": 69335972161,
+            "total_tx_bytes": 27514760082
+        }
     }
 ]

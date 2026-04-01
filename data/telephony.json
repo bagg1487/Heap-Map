@@ -16229,5 +16229,213 @@
             }
         },
         "timestamp": 1773898940207
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501004399
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501009985
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501015462
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501021000
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501026464
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501031899
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501037345
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501042807
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501048257
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501053717
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501059220
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501064929
+    },
+    {
+        "telephony": {
+            "cell_0": {
+                "ci": 138259488,
+                "dbm": -44,
+                "earfcn": 38952,
+                "mcc": 250,
+                "mnc": 20,
+                "pci": 379,
+                "rsrp": -44,
+                "tac": 17724,
+                "type": "LTE"
+            }
+        },
+        "timestamp": 1774501070458
     }
 ]

@@ -910,5 +910,161 @@
             "speed": 0
         },
         "timestamp": 1773898940207
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501004399
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501009985
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501015462
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501021000
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501026464
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501031899
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501037345
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501042807
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501048257
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501053717
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501059220
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501064929
+    },
+    {
+        "location": {
+            "accuracy": 100,
+            "altitude": 133.20001220703125,
+            "bearing": 0,
+            "latitude": 55.0131827,
+            "longitude": 82.9508828,
+            "provider": "network",
+            "speed": 0
+        },
+        "timestamp": 1774501070458
     }
 ]

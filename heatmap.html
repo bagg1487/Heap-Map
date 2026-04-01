@@ -1,48 +1,460 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Heatmap</title>
+    <title>Mobile Data Heatmap</title>
     <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
     <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
     <style>
-        #map { height: 100vh; }
+        #map { height: 100vh; width: 100%; }
+        .info-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.95);
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid #0f0;
+        }
+        .info-panel.show { display: block; }
+        .close {
+            float: right;
+            cursor: pointer;
+            color: #fff;
+            font-size: 20px;
+        }
+        .close:hover { color: #0f0; }
+        .stats {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 2000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .cell-item {
+            margin: 5px 0;
+            padding: 5px;
+            background: #1a1a1a;
+            border-left: 3px solid #0f0;
+        }
+        hr {
+            border-color: #333;
+        }
     </style>
 </head>
 <body>
     <div id='map'></div>
+    <div class='stats' id='stats'>Loading data...</div>
+    <div class='info-panel' id='infoPanel'>
+        <span class='close' onclick='closeInfo()'>&times;</span>
+        <div id='infoContent'></div>
+    </div>
+    <div class='loading' id='loading'>Loading data from JSON files...</div>
+
     <script>
-        var map = L.map('map').setView([55.0131, 82.9508], 15);
+        var map = L.map('map').setView([55.013, 82.951], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
-        var markers = [
-            [55.0132, 82.9506],
-            [55.013, 82.951],
-            [55.013, 82.9509],
-            [55.0131, 82.9507],
-            [55.0131, 82.9507],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-            [55.0131, 82.9508],
-        ];
-        markers.forEach(function(m) {
-            L.marker(m).addTo(map);
+
+        var allPoints = [];
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            var k = 1024;
+            var sizes = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+        }
+
+        function formatTimestamp(ts) {
+            if (!ts) return 'N/A';
+            var date = new Date(ts);
+            return date.toLocaleString('ru-RU');
+        }
+
+        function parseCellInfo(cellInfoStr) {
+            if (!cellInfoStr) return [];
+            var cells = [];
+            var lines = cellInfoStr.split('\\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (line.indexOf('CellInfoGsm') !== -1 || line.indexOf('CellInfoLte') !== -1) {
+                    var cell = {};
+                    var type = line.indexOf('CellInfoGsm') !== -1 ? 'GSM' : 'LTE';
+                    cell.type = type;
+                    
+                    var rssiMatch = line.match(/rssi=(-?\d+)/);
+                    if (rssiMatch) cell.dbm = parseInt(rssiMatch[1]);
+                    
+                    var lacMatch = line.match(/mLac=(\d+)/);
+                    if (lacMatch) cell.lac = parseInt(lacMatch[1]);
+                    
+                    var cidMatch = line.match(/mCid=(\d+)/);
+                    if (cidMatch) cell.cid = parseInt(cidMatch[1]);
+                    
+                    var arfcnMatch = line.match(/mArfcn=(\d+)/);
+                    if (arfcnMatch) cell.arfcn = parseInt(arfcnMatch[1]);
+                    
+                    var mccMatch = line.match(/mMcc=(\d+)/);
+                    if (mccMatch) cell.mcc = parseInt(mccMatch[1]);
+                    
+                    var mncMatch = line.match(/mMnc=(\d+)/);
+                    if (mncMatch) cell.mnc = parseInt(mncMatch[1]);
+                    
+                    cells.push(cell);
+                }
+            }
+            return cells;
+        }
+
+        function showInfo(point) {
+            var html = '<h3>📍 Point Info</h3><hr>';
+            html += '<b>🕐 Time:</b> ' + formatTimestamp(point.timestamp) + '<br>';
+            html += '<b>🗺️ Location:</b><br>';
+            html += '&nbsp;&nbsp;Lat: ' + point.lat.toFixed(6) + '<br>';
+            html += '&nbsp;&nbsp;Lon: ' + point.lon.toFixed(6) + '<br>';
+            if (point.accuracy) html += '&nbsp;&nbsp;Accuracy: ' + point.accuracy.toFixed(1) + ' m<br>';
+            if (point.altitude) html += '&nbsp;&nbsp;Altitude: ' + point.altitude.toFixed(1) + ' m<br>';
+            if (point.provider) html += '&nbsp;&nbsp;Provider: ' + point.provider + '<br>';
+            if (point.speed) html += '&nbsp;&nbsp;Speed: ' + point.speed + ' m/s<br>';
+            
+            if (point.cells && point.cells.length > 0) {
+                html += '<br><b>📡 Cell Towers:</b><br>';
+                for (var i = 0; i < point.cells.length; i++) {
+                    var cell = point.cells[i];
+                    html += '<div class="cell-item">';
+                    html += '<b>[' + (i+1) + '] ' + cell.type + '</b><br>';
+                    if (cell.dbm) {
+                        var color = cell.dbm >= -70 ? '#0f0' : (cell.dbm >= -90 ? '#ff0' : '#f00');
+                        html += '&nbsp;&nbsp;Signal: <span style="color:' + color + '">' + cell.dbm + ' dBm</span><br>';
+                    }
+                    if (cell.cid) html += '&nbsp;&nbsp;CID: ' + cell.cid + '<br>';
+                    if (cell.lac) html += '&nbsp;&nbsp;LAC: ' + cell.lac + '<br>';
+                    if (cell.arfcn) html += '&nbsp;&nbsp;ARFCN: ' + cell.arfcn + '<br>';
+                    if (cell.mcc) html += '&nbsp;&nbsp;MCC: ' + cell.mcc + '<br>';
+                    if (cell.mnc) html += '&nbsp;&nbsp;MNC: ' + cell.mnc + '<br>';
+                    html += '</div>';
+                }
+            }
+            
+            if (point.telephony && typeof point.telephony === 'object') {
+                html += '<br><b>📡 Cell Towers:</b><br>';
+                var lteCells = [];
+                var gsmCells = [];
+                for (var key in point.telephony) {
+                    var cell = point.telephony[key];
+                    if (cell.type === 'LTE') lteCells.push(cell);
+                    else if (cell.type === 'GSM') gsmCells.push(cell);
+                }
+                
+                if (lteCells.length > 0) {
+                    html += '<b>LTE (4G):</b><br>';
+                    for (var i = 0; i < lteCells.length; i++) {
+                        var cell = lteCells[i];
+                        var signal = cell.rsrp || cell.dbm;
+                        var color = signal >= -80 ? '#0f0' : (signal >= -100 ? '#ff0' : '#f00');
+                        html += '&nbsp;&nbsp;[' + (i+1) + '] RSRP: <span style="color:' + color + '">' + signal + ' dBm</span>';
+                        if (cell.pci) html += ' | PCI: ' + cell.pci;
+                        if (cell.earfcn) html += ' | EARFCN: ' + cell.earfcn;
+                        if (cell.ci) html += ' | CI: ' + cell.ci;
+                        html += '<br>';
+                    }
+                }
+                
+                if (gsmCells.length > 0) {
+                    html += '<b>GSM (2G):</b><br>';
+                    for (var i = 0; i < gsmCells.length; i++) {
+                        var cell = gsmCells[i];
+                        var signal = cell.dbm;
+                        var color = signal >= -70 ? '#0f0' : (signal >= -90 ? '#ff0' : '#f00');
+                        html += '&nbsp;&nbsp;[' + (i+1) + '] DBM: <span style="color:' + color + '">' + signal + ' dBm</span>';
+                        if (cell.cid) html += ' | CID: ' + cell.cid;
+                        if (cell.lac) html += ' | LAC: ' + cell.lac;
+                        html += '<br>';
+                    }
+                }
+            }
+            
+            if (point.traffic) {
+                html += '<br><b>📊 Traffic:</b><br>';
+                html += '&nbsp;&nbsp;Total RX: ' + formatBytes(point.traffic.total_rx_bytes || point.traffic.total_rx) + '<br>';
+                html += '&nbsp;&nbsp;Total TX: ' + formatBytes(point.traffic.total_tx_bytes || point.traffic.total_tx) + '<br>';
+                if (point.traffic.mobile_rx_bytes) {
+                    html += '&nbsp;&nbsp;Mobile RX: ' + formatBytes(point.traffic.mobile_rx_bytes) + '<br>';
+                    html += '&nbsp;&nbsp;Mobile TX: ' + formatBytes(point.traffic.mobile_tx_bytes) + '<br>';
+                }
+            }
+            
+            document.getElementById('infoContent').innerHTML = html;
+            document.getElementById('infoPanel').classList.add('show');
+        }
+
+        function closeInfo() {
+            document.getElementById('infoPanel').classList.remove('show');
+        }
+
+        function getSignalColor(record) {
+            var bestSignal = -200;
+            if (record.telephony) {
+                for (var key in record.telephony) {
+                    var dbm = record.telephony[key].rsrp || record.telephony[key].dbm;
+                    if (dbm && dbm > bestSignal) bestSignal = dbm;
+                }
+            }
+            if (record.cells) {
+                for (var i = 0; i < record.cells.length; i++) {
+                    if (record.cells[i].dbm && record.cells[i].dbm > bestSignal) {
+                        bestSignal = record.cells[i].dbm;
+                    }
+                }
+            }
+            if (bestSignal > -70) return 'green';
+            if (bestSignal > -85) return '#80ff00';
+            if (bestSignal > -100) return 'orange';
+            if (bestSignal > -115) return 'red';
+            return 'darkred';
+        }
+
+        async function loadAllData() {
+    var allRecords = [];
+    
+    try {
+        var response1 = await fetch('/data/all_data.json');
+        if (response1.ok) {
+            var data1 = await response1.json();
+            if (Array.isArray(data1)) {
+                for (var i = 0; i < data1.length; i++) {
+                    allRecords.push(data1[i]);
+                }
+                console.log('Loaded from all_data.json:', data1.length);
+            }
+        }
+    } catch(e) { console.log('all_data.json not found'); }
+    
+    try {
+        var response2 = await fetch('/data/location_danil.json');
+        if (response2.ok) {
+            var data2 = await response2.json();
+            // Если это массив
+            if (Array.isArray(data2)) {
+                for (var i = 0; i < data2.length; i++) {
+                    allRecords.push(data2[i]);
+                }
+                console.log('Loaded from location_danil.json (array):', data2.length);
+            } 
+            // Если это один объект
+            else if (data2 && data2.latitude) {
+                allRecords.push(data2);
+                console.log('Loaded from location_danil.json (single)');
+            }
+        }
+    } catch(e) { console.log('location_danil.json not found'); }
+    
+    try {
+        var response3 = await fetch('/data/locations.json');
+        if (response3.ok) {
+            var data3 = await response3.json();
+            if (Array.isArray(data3)) {
+                for (var i = 0; i < data3.length; i++) {
+                    allRecords.push(data3[i]);
+                }
+                console.log('Loaded from locations.json:', data3.length);
+            }
+        }
+    } catch(e) { console.log('locations.json not found'); }
+    
+    console.log('Total records loaded:', allRecords.length);
+    return allRecords;
+}
+
+async function initMap() {
+    var records = await loadAllData();
+    document.getElementById('loading').style.display = 'none';
+    
+    if (records.length === 0) {
+        document.getElementById('stats').innerHTML = 'No data loaded. Check data files.';
+        console.error('No data loaded');
+        return;
+    }
+    
+    var added = 0;
+    var bounds = [];
+    
+    for (var i = 0; i < records.length; i++) {
+        var record = records[i];
+        var lat = null, lon = null;
+        var pointData = {};
+        
+        // Формат 1: record.location.latitude (из all_data.json)
+        if (record.location && record.location.latitude) {
+            lat = record.location.latitude;
+            lon = record.location.longitude;
+            pointData = {
+                lat: lat,
+                lon: lon,
+                timestamp: record.timestamp,
+                accuracy: record.location.accuracy,
+                altitude: record.location.altitude,
+                provider: record.location.provider,
+                speed: record.location.speed,
+                telephony: record.telephony,
+                traffic: record.traffic
+            };
+            console.log('Format 1 - location:', lat, lon);
+        }
+        // Формат 2: record.latitude (из location_danil.json)
+        else if (record.latitude && record.longitude) {
+            lat = record.latitude;
+            lon = record.longitude;
+            pointData = {
+                lat: lat,
+                lon: lon,
+                timestamp: record.timestamp,
+                altitude: record.altitude,
+                imei: record.imei
+            };
+            
+            // Парсим cellInfo если есть
+            if (record.cellInfo) {
+                pointData.cells = parseCellInfo(record.cellInfo);
+            }
+            console.log('Format 2 - direct lat/lon:', lat, lon);
+        }
+        
+        if (lat && lon && lat !== 0 && lon !== 0) {
+            var color = getSignalColor(pointData);
+            
+            var icon = L.divIcon({
+                html: '<div style="background:' + color + ';width:10px;height:10px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px black;"></div>',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+            
+            var marker = L.marker([lat, lon], { icon: icon }).addTo(map);
+            
+            var tooltipText = formatTimestamp(pointData.timestamp);
+            marker.bindTooltip(tooltipText);
+            
+            marker.on('click', (function(p) {
+                return function() { showInfo(p); };
+            })(pointData));
+            
+            bounds.push([lat, lon]);
+            added++;
+        }
+    }
+    
+    if (bounds.length > 0) {
+        map.fitBounds(bounds);
+    }
+    
+    document.getElementById('stats').innerHTML = '📍 Points: ' + added;
+    console.log('Added ' + added + ' markers');
+}
+
+        async function initMap() {
+            var records = await loadAllData();
+            document.getElementById('loading').style.display = 'none';
+            
+            if (records.length === 0) {
+                document.getElementById('stats').innerHTML = 'No data loaded. Check data files.';
+                return;
+            }
+            
+            var added = 0;
+            var bounds = [];
+            
+            for (var i = 0; i < records.length; i++) {
+                var record = records[i];
+                var lat = null, lon = null;
+                var pointData = {};
+                
+                if (record.location && record.location.latitude) {
+                    lat = record.location.latitude;
+                    lon = record.location.longitude;
+                    pointData = {
+                        lat: lat,
+                        lon: lon,
+                        timestamp: record.timestamp,
+                        accuracy: record.location.accuracy,
+                        altitude: record.location.altitude,
+                        provider: record.location.provider,
+                        speed: record.location.speed,
+                        telephony: record.telephony,
+                        traffic: record.traffic
+                    };
+                }
+                else if (record.latitude && record.longitude) {
+                    lat = record.latitude;
+                    lon = record.longitude;
+                    pointData = {
+                        lat: lat,
+                        lon: lon,
+                        timestamp: record.timestamp,
+                        altitude: record.altitude,
+                        cells: parseCellInfo(record.cellInfo),
+                        imei: record.imei
+                    };
+                }
+                
+                if (lat && lon && lat !== 0 && lon !== 0) {
+                    var color = getSignalColor(pointData);
+                    
+                    var icon = L.divIcon({
+                        html: '<div style="background:' + color + ';width:10px;height:10px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px black;"></div>',
+                        iconSize: [14, 14],
+                        iconAnchor: [7, 7]
+                    });
+                    
+                    var marker = L.marker([lat, lon], { icon: icon }).addTo(map);
+                    
+                    var tooltipText = formatTimestamp(pointData.timestamp);
+                    marker.bindTooltip(tooltipText);
+                    
+                    marker.on('click', function(p) {
+                        return function() { showInfo(p); };
+                    }(pointData));
+                    
+                    bounds.push([lat, lon]);
+                    added++;
+                }
+            }
+            
+            if (bounds.length > 0) {
+                map.fitBounds(bounds);
+            }
+            
+            document.getElementById('stats').innerHTML = '📍 Points: ' + added;
+            console.log('Added ' + added + ' markers');
+        }
+
+        initMap();
+        map.on('click', closeInfo);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeInfo();
         });
     </script>
 </body>

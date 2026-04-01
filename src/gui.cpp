@@ -14,71 +14,342 @@
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #include <zmq.hpp>
-
-void generate_html_map(const std::vector<MapPoint>& points, const std::string& filename);
-void draw_minimap(const std::vector<MapPoint>& points, int point_size);
-void load_points_from_json(std::vector<MapPoint>& map_points);
-std::string formatTime(long long ts);
+#include <cmath>
+#include <pqxx/pqxx>
 
 using namespace std;
 using json = nlohmann::json;
 
 zmq::context_t* g_context = nullptr;
 zmq::socket_t* g_command_socket = nullptr;
-
 vector<MapPoint> map_points;
+
+struct SignalHistory {
+    deque<float> times;
+    map<int, deque<float>> rsrp;
+    map<int, deque<float>> rsrq;
+    map<int, deque<float>> rssnr;
+    int sample_count = 0;
+    const int max_history = 200;
+    
+    void add_cell(int pci, float rsrp_val, float rsrq_val, float rssnr_val) {
+        if (pci <= 0) return;
+        
+        if (rsrp[pci].size() >= max_history) rsrp[pci].pop_front();
+        if (rsrq[pci].size() >= max_history) rsrq[pci].pop_front();
+        if (rssnr[pci].size() >= max_history) rssnr[pci].pop_front();
+        
+        rsrp[pci].push_back(rsrp_val);
+        rsrq[pci].push_back(rsrq_val);
+        rssnr[pci].push_back(rssnr_val);
+    }
+    
+    void add_sample() {
+        if (times.size() >= max_history) {
+            times.pop_front();
+        }
+        times.push_back(sample_count);
+        sample_count++;
+    }
+    
+    void clear() {
+        times.clear();
+        rsrp.clear();
+        rsrq.clear();
+        rssnr.clear();
+        sample_count = 0;
+    }
+};
+
+struct TrafficHistory {
+    deque<float> times;
+    deque<long long> rx_bytes;
+    deque<long long> tx_bytes;
+    int sample_count = 0;
+    const int max_history = 200;
+    
+    void add(long long rx, long long tx) {
+        if (rx_bytes.size() >= max_history) rx_bytes.pop_front();
+        if (tx_bytes.size() >= max_history) tx_bytes.pop_front();
+        
+        rx_bytes.push_back(rx);
+        tx_bytes.push_back(tx);
+        
+        if (times.size() >= max_history) {
+            times.pop_front();
+        }
+        times.push_back(sample_count);
+        sample_count++;
+    }
+    
+    void clear() {
+        times.clear();
+        rx_bytes.clear();
+        tx_bytes.clear();
+        sample_count = 0;
+    }
+};
+
+struct LocationHistory {
+    deque<float> times;
+    deque<double> latitudes;
+    deque<double> longitudes;
+    deque<double> altitudes;
+    deque<float> accuracies;
+    int sample_count = 0;
+    const int max_history = 200;
+    
+    void add(double lat, double lon, double alt, float acc) {
+        if (latitudes.size() >= max_history) latitudes.pop_front();
+        if (longitudes.size() >= max_history) longitudes.pop_front();
+        if (altitudes.size() >= max_history) altitudes.pop_front();
+        if (accuracies.size() >= max_history) accuracies.pop_front();
+        
+        latitudes.push_back(lat);
+        longitudes.push_back(lon);
+        altitudes.push_back(alt);
+        accuracies.push_back(acc);
+        
+        if (times.size() >= max_history) {
+            times.pop_front();
+        }
+        times.push_back(sample_count);
+        sample_count++;
+    }
+    
+    void clear() {
+        times.clear();
+        latitudes.clear();
+        longitudes.clear();
+        altitudes.clear();
+        accuracies.clear();
+        sample_count = 0;
+    }
+};
 
 string formatBytes(long long bytes) {
     const char* units[] = {"B", "KB", "MB", "GB", "TB"};
     int unit = 0;
     double size = bytes;
-    while (size >= 1024 && unit < 4) {
-        size /= 1024;
-        unit++;
-    }
+    while (size >= 1024 && unit < 4) { size /= 1024; unit++; }
     char buf[32];
     snprintf(buf, sizeof(buf), "%.2f %s", size, units[unit]);
     return string(buf);
 }
 
-void send_filter_command(SharedData* shared, const string& filter_name, bool value) {
-    if (!g_command_socket) return;
+string formatTime(long long ts) {
+    if (ts == 0) return "N/A";
+    time_t t = ts / 1000;
+    struct tm* tm_info = localtime(&t);
+    char buffer[64];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tm_info);
+    return string(buffer);
+}
+
+void draw_minimap(const vector<MapPoint>& points, int point_size) {
+    if (points.empty()) { ImGui::Text("No points to display"); return; }
     
-    try {
-        json command;
-        command["type"] = "filter";
-        command["filter"] = filter_name;
-        command["value"] = value;
-        
-        string cmd_str = command.dump();
-        
-        zmq::message_t request(cmd_str.size());
-        memcpy(request.data(), cmd_str.c_str(), cmd_str.size());
-        
-        if (g_command_socket->send(request, zmq::send_flags::dontwait)) {
-            zmq::message_t reply;
-            try {
-                g_command_socket->recv(reply, zmq::recv_flags::dontwait);
-                cout << "Filter command sent: " << filter_name << " = " << value << endl;
-            } catch (...) {}
-        }
-    } catch (const exception& e) {
-        cerr << "Failed to send filter command: " << e.what() << endl;
+    double min_lat = 90, max_lat = -90, min_lon = 180, max_lon = -180;
+    for (const auto& p : points) {
+        min_lat = min(min_lat, p.lat);
+        max_lat = max(max_lat, p.lat);
+        min_lon = min(min_lon, p.lon);
+        max_lon = max(max_lon, p.lon);
+    }
+    
+    if (min_lat == max_lat) { min_lat -= 0.001; max_lat += 0.001; }
+    if (min_lon == max_lon) { min_lon -= 0.001; max_lon += 0.001; }
+    
+    float width = ImGui::GetContentRegionAvail().x;
+    float height = width * 0.6f;
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+    
+    ImGui::InvisibleButton("minimap", ImVec2(width, height));
+    draw_list->AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + width, canvas_pos.y + height), IM_COL32(30,30,40,255));
+    draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + width, canvas_pos.y + height), IM_COL32(100,100,100,255));
+    
+    auto lat_to_y = [&](double lat) { return canvas_pos.y + height - (lat - min_lat) / (max_lat - min_lat) * height; };
+    auto lon_to_x = [&](double lon) { return canvas_pos.x + (lon - min_lon) / (max_lon - min_lon) * width; };
+    
+    for (const auto& p : points) {
+        float x = lon_to_x(p.lon);
+        float y = lat_to_y(p.lat);
+        ImU32 color = p.signal_strength >= -80 ? IM_COL32(0,255,0,255) :
+                      p.signal_strength >= -90 ? IM_COL32(100,255,0,255) :
+                      p.signal_strength >= -100 ? IM_COL32(255,255,0,255) :
+                      p.signal_strength >= -110 ? IM_COL32(255,128,0,255) : IM_COL32(255,0,0,255);
+        draw_list->AddCircleFilled(ImVec2(x,y), point_size, color);
+        draw_list->AddCircle(ImVec2(x,y), point_size, IM_COL32(255,255,255,200), 0, 1.0f);
     }
 }
 
-struct SignalData {
-    float rsrp;
-    float rsrq;
-    float rssnr;
-    float dbm;
-    float level;
-    long long timestamp;
-};
+void load_points_from_db(vector<MapPoint>& map_points, pqxx::connection& db_conn) {
+    map_points.clear();
+    
+    try {
+        if (!db_conn.is_open()) {
+            cerr << "Database not connected" << endl;
+            return;
+        }
+        
+        pqxx::work txn(db_conn);
+        
+        pqxx::result res = txn.exec(
+            "SELECT l.latitude, l.longitude, m.timestamp, c.rsrp, c.dbm, c.type "
+            "FROM locations l "
+            "JOIN measurements m ON l.measurement_id = m.id "
+            "LEFT JOIN cells c ON l.measurement_id = c.measurement_id "
+            "WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL "
+            "ORDER BY l.id DESC LIMIT 10000"
+        );
+        
+        for (const auto& row : res) {
+            MapPoint p;
+            p.lat = row[0].as<double>();
+            p.lon = row[1].as<double>();
+            p.timestamp = row[2].as<long long>();
+            
+            if (!row[3].is_null()) p.signal_strength = row[3].as<int>();
+            else if (!row[4].is_null()) p.signal_strength = row[4].as<int>();
+            else p.signal_strength = -120;
+            
+            if (!row[5].is_null()) p.type = row[5].as<string>();
+            else p.type = "Unknown";
+            
+            map_points.push_back(p);
+        }
+        
+        txn.commit();
+        cout << "Loaded " << map_points.size() << " points from database" << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Database error: " << e.what() << endl;
+    }
+}
+
+void load_signal_history_from_db(SignalHistory& signal, pqxx::connection& db_conn) {
+    try {
+        if (!db_conn.is_open()) return;
+        
+        pqxx::work txn(db_conn);
+        
+        pqxx::result res = txn.exec(
+            "SELECT c.pci, c.rsrp, m.timestamp "
+            "FROM cells c "
+            "JOIN measurements m ON c.measurement_id = m.id "
+            "WHERE c.pci IS NOT NULL AND c.pci > 0 "
+            "ORDER BY m.id ASC LIMIT 2000"
+        );
+        
+        signal.clear();
+        
+        for (const auto& row : res) {
+            int pci = row[0].as<int>();
+            int rsrp = row[1].as<int>();
+            
+            int rsrq = -20;
+            int rssnr = 0;
+            
+            if (rsrp > -80) rssnr = 20;
+            else if (rsrp > -90) rssnr = 15;
+            else if (rsrp > -100) rssnr = 10;
+            else if (rsrp > -110) rssnr = 5;
+            else rssnr = 0;
+            
+            if (rsrp > -80) rsrq = -8;
+            else if (rsrp > -90) rsrq = -12;
+            else if (rsrp > -100) rsrq = -15;
+            else if (rsrp > -110) rsrq = -18;
+            else rsrq = -20;
+            
+            signal.add_cell(pci, rsrp, rsrq, rssnr);
+            signal.add_sample();
+        }
+        
+        txn.commit();
+        cout << "Loaded " << signal.rsrp.size() << " cells with " << signal.sample_count << " samples from database" << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Error loading signal history: " << e.what() << endl;
+    }
+}
+
+void load_traffic_from_db(TrafficHistory& traffic, pqxx::connection& db_conn) {
+    try {
+        if (!db_conn.is_open()) return;
+        
+        pqxx::work txn(db_conn);
+        
+        pqxx::result res = txn.exec(
+            "SELECT t.mobile_rx, t.mobile_tx, m.timestamp "
+            "FROM traffic t "
+            "JOIN measurements m ON t.measurement_id = m.id "
+            "WHERE t.mobile_rx IS NOT NULL "
+            "ORDER BY m.id ASC LIMIT 2000"
+        );
+        
+        traffic.clear();
+        
+        for (const auto& row : res) {
+            long long rx = row[0].as<long long>();
+            long long tx = row[1].as<long long>();
+            traffic.add(rx, tx);
+        }
+        
+        txn.commit();
+        cout << "Loaded " << traffic.sample_count << " traffic samples from database" << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Error loading traffic history: " << e.what() << endl;
+    }
+}
+
+void load_locations_from_db(LocationHistory& locations, pqxx::connection& db_conn) {
+    try {
+        if (!db_conn.is_open()) return;
+        
+        pqxx::work txn(db_conn);
+        
+        pqxx::result res = txn.exec(
+            "SELECT l.latitude, l.longitude, l.altitude, l.accuracy, m.timestamp "
+            "FROM locations l "
+            "JOIN measurements m ON l.measurement_id = m.id "
+            "WHERE l.latitude IS NOT NULL "
+            "ORDER BY m.id ASC LIMIT 2000"
+        );
+        
+        locations.clear();
+        
+        for (const auto& row : res) {
+            double lat = row[0].as<double>();
+            double lon = row[1].as<double>();
+            double alt = row[2].as<double>();
+            float acc = row[3].as<float>();
+            locations.add(lat, lon, alt, acc);
+        }
+        
+        txn.commit();
+        cout << "Loaded " << locations.sample_count << " location samples from database" << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Error loading location history: " << e.what() << endl;
+    }
+}
+
+void send_filter_command(SharedData* shared, const string& filter_name, bool value) {
+    if (!g_command_socket) return;
+    try {
+        json cmd = {{"type","filter"}, {"filter",filter_name}, {"value",value}};
+        zmq::message_t req(cmd.dump().size());
+        memcpy(req.data(), cmd.dump().c_str(), cmd.dump().size());
+        g_command_socket->send(req, zmq::send_flags::dontwait);
+    } catch (...) {}
+}
 
 void run_gui(SharedData* shared) {
     if (!glfwInit()) return;
-    
     GLFWwindow* window = glfwCreateWindow(1600, 900, "GPS Monitor Pro", NULL, NULL);
     if (!window) { glfwTerminate(); return; }
     
@@ -89,43 +360,37 @@ void run_gui(SharedData* shared) {
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGui::StyleColorsDark();
-    
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
     
     g_context = new zmq::context_t(1);
-    g_command_socket = new zmq::socket_t(*g_context, zmq::socket_type::req);
+    g_command_socket = new zmq::socket_t(*g_context, ZMQ_REQ);
     g_command_socket->set(zmq::sockopt::rcvtimeo, 1000);
     g_command_socket->set(zmq::sockopt::sndtimeo, 1000);
-    g_command_socket->set(zmq::sockopt::linger, 0);
     
     string server_ip = get_local_ip();
-    
     try {
         g_command_socket->connect("tcp://" + server_ip + ":8080");
-        cout << "Command socket connected to port 8080" << endl;
-    } catch (const exception& e) {
-        cerr << "Failed to connect command socket: " << e.what() << endl;
+        cout << "Connected to ZMQ server" << endl;
+    } catch (...) {
+        cerr << "Failed to connect to ZMQ server" << endl;
     }
     
-    load_points_from_json(map_points);
+    pqxx::connection db_conn("dbname=cellmap user=postgres password=postgres host=localhost port=5434");
+    if (!db_conn.is_open()) {
+        cerr << "Failed to connect to PostgreSQL" << endl;
+    } else {
+        cout << "Connected to PostgreSQL" << endl;
+        load_points_from_db(map_points, db_conn);
+    }
     
-    vector<json> locations;
-    vector<pair<string, json>> cells;
-    vector<json> traffic;
+    SignalHistory signal;
+    TrafficHistory traffic_hist;
+    LocationHistory location_hist;
+    
+    map<int, json> cells_by_pci;
     
     int last_count = 0;
-    int last_points_count = 0;
-    
-    deque<float> rsrp_history;
-    deque<float> rsrq_history;
-    deque<float> rssnr_history;
-    deque<float> dbm_history;
-    deque<float> level_history;
-    deque<float> time_history;
-    const int max_history = 200;
-    
-    int sample_count = 0;
     
     bool prev_filter_location = shared->filter_location;
     bool prev_filter_telephony = shared->filter_telephony;
@@ -134,7 +399,6 @@ void run_gui(SharedData* shared) {
     bool prev_filter_gsm = shared->filter_gsm;
     bool prev_filter_wcdma = shared->filter_wcdma;
     
-    bool command_socket_connected = false;
     bool show_heatmap = true;
     int heatmap_point_size = 5;
     
@@ -143,72 +407,22 @@ void run_gui(SharedData* shared) {
         
         if (shared->counter != last_count) {
             last_count = shared->counter;
-            
             lock_guard<mutex> lock(shared->data_mutex);
-            locations.clear();
-            cells.clear();
-            traffic.clear();
+            
+            cells_by_pci.clear();
             
             for (auto& item : shared->recent_records) {
-                if (item.contains("location")) {
-                    locations.push_back(item);
-                }
-                
                 if (item.contains("telephony")) {
-                    auto& tele = item["telephony"];
-                    for (auto& [key, val] : tele.items()) {
-                        if (key.find("cell_") == 0) {
-                            cells.push_back({key, val});
-                            
-                            int dbm = val.value("dbm", -120);
-                            int rsrp = val.value("rsrp", -140);
-                            int rsrq = val.value("rsrq", -20);
-                            int rssnr = val.value("rssnr", 0);
-                            
-                            int level = 0;
-                            if (dbm >= -70) level = 4;
-                            else if (dbm >= -80) level = 3;
-                            else if (dbm >= -90) level = 2;
-                            else if (dbm >= -100) level = 1;
-                            else level = 0;
-                            
-                            if (time_history.size() >= max_history) {
-                                time_history.pop_front();
-                                dbm_history.pop_front();
-                                level_history.pop_front();
-                                rsrp_history.pop_front();
-                                rsrq_history.pop_front();
-                                rssnr_history.pop_front();
-                            }
-                            
-                            time_history.push_back(sample_count);
-                            dbm_history.push_back(dbm);
-                            level_history.push_back(level);
-                            
-                            string type = val.value("type", "");
-                            if (type == "LTE" || type == "NR") {
-                                rsrp_history.push_back(rsrp);
-                                rsrq_history.push_back(rsrq);
-                                rssnr_history.push_back(rssnr);
-                            } else {
-                                rsrp_history.push_back(-140);
-                                rsrq_history.push_back(-20);
-                                rssnr_history.push_back(0);
+                    for (auto& [key, cell] : item["telephony"].items()) {
+                        if (cell.is_object()) {
+                            int pci = cell.value("pci", 0);
+                            if (pci > 0) {
+                                cells_by_pci[pci] = cell;
                             }
                         }
                     }
-                    sample_count++;
-                }
-                
-                if (item.contains("traffic")) {
-                    traffic.push_back(item["traffic"]);
                 }
             }
-        }
-        
-        if (locations.size() != last_points_count) {
-            last_points_count = locations.size();
-            load_points_from_json(map_points);
         }
         
         if (prev_filter_location != shared->filter_location) {
@@ -240,131 +454,210 @@ void run_gui(SharedData* shared) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowPos(ImVec2(0,0));
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-        ImGui::Begin("GPS Monitor Pro", NULL, 
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
-            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("GPS Monitor Pro", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
         
-        if (ImGui::BeginTabBar("Tabs", ImGuiTabBarFlags_FittingPolicyScroll)) {
+        if (ImGui::BeginTabBar("Tabs")) {
             
             if (ImGui::BeginTabItem("Dashboard")) {
-                ImGui::Text("=== System Overview ===");
-                ImGui::Separator();
-                
-                ImGui::Columns(2);
                 ImGui::Text("Total Records: %d", shared->counter);
-                ImGui::Text("Active Cells: %zu", cells.size());
-                ImGui::NextColumn();
-                ImGui::Text("Traffic Records: %zu", traffic.size());
-                ImGui::Text("Graph Points: %zu", time_history.size());
+                ImGui::Text("Active Cells: %zu", cells_by_pci.size());
                 ImGui::Text("Map Points: %zu", map_points.size());
-                ImGui::Columns(1);
-                
                 ImGui::Separator();
-                
-                if (!cells.empty()) {
-                    auto& [key, cell] = *cells.rbegin();
-                    ImGui::Text("=== Last Cell Info ===");
-                    ImGui::Text("Type: %s", cell.value("type", "Unknown").c_str());
-                    ImGui::Text("PCI: %d", cell.value("pci", 0));
-                    ImGui::Text("RSRP: %d dBm", cell.value("rsrp", -140));
-                    ImGui::Text("RSRQ: %d dB", cell.value("rsrq", -20));
-                    ImGui::Text("RSSNR: %d dB", cell.value("rssnr", 0));
-                    ImGui::Text("dBm: %d", cell.value("dbm", -120));
+                if (!cells_by_pci.empty()) {
+                    auto& [pci, cell] = *cells_by_pci.begin();
+                    ImGui::Text("Last Cell - Type: %s | PCI: %d | RSRP: %d dBm", 
+                        cell.value("type","Unknown").c_str(), pci, cell.value("rsrp",-140));
                 }
-                
                 ImGui::EndTabItem();
             }
             
             if (ImGui::BeginTabItem("Heatmap")) {
-    ImGui::Checkbox("Show Mini-map", &show_heatmap);
-    ImGui::SameLine();
-    ImGui::SliderInt("Point Size", &heatmap_point_size, 2, 10);
-    ImGui::SameLine();
-    if (ImGui::Button("Reload Data")) {
-        load_points_from_json(map_points);
-    }
-    
-    if (ImGui::Button("Open in Browser (Full Map)")) {
-        generate_html_map(map_points, "heatmap.html");
-        system("xdg-open heatmap.html"); // Linux
-        // system("open heatmap.html"); // Mac
-        // system("start heatmap.html"); // Windows
-    }
-    
-    ImGui::Separator();
-    
-    if (show_heatmap) {
-        draw_minimap(map_points, heatmap_point_size);
-    }
-    
-    ImGui::EndTabItem();
-}
+                ImGui::Checkbox("Show Map", &show_heatmap);
+                ImGui::SameLine();
+                ImGui::SliderInt("Point Size", &heatmap_point_size, 2, 10);
+                ImGui::SameLine();
+                if (ImGui::Button("Reload from DB")) {
+                    if (db_conn.is_open()) {
+                        load_points_from_db(map_points, db_conn);
+                        load_signal_history_from_db(signal, db_conn);
+                        load_traffic_from_db(traffic_hist, db_conn);
+                        load_locations_from_db(location_hist, db_conn);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Open Browser")) {
+                    string url = "http://" + server_ip + ":8081/heatmap.html";
+                    system(("cmd.exe /c start " + url).c_str());
+                }
+                ImGui::Separator();
+                if (show_heatmap && !map_points.empty()) draw_minimap(map_points, heatmap_point_size);
+                else if (show_heatmap) ImGui::Text("No points. Click 'Reload from DB'.");
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Signal Graphs")) {
+                if (signal.rsrp.empty()) {
+                    ImGui::Text("No signal data. Click 'Reload from DB' in Heatmap tab.");
+                    if (ImGui::Button("Load Signal Data")) {
+                        if (db_conn.is_open()) {
+                            load_signal_history_from_db(signal, db_conn);
+                        }
+                    }
+                } else {
+                    vector<float> times(signal.times.begin(), signal.times.end());
+                    
+                    if (ImPlot::BeginPlot("RSRP (dBm)", ImVec2(-1, 300))) {
+                        ImPlot::SetupAxes("Sample", "dBm");
+                        ImPlot::SetupAxisLimits(ImAxis_Y1, -140, -60);
+                        
+                        for (auto& [pci, values] : signal.rsrp) {
+                            if (values.empty()) continue;
+                            vector<float> data(values.begin(), values.end());
+                            if (data.size() == times.size()) {
+                                ImPlot::PlotLine(("PCI=" + to_string(pci)).c_str(), times.data(), data.data(), data.size());
+                            }
+                        }
+                        ImPlot::EndPlot();
+                    }
+                    
+                    if (ImPlot::BeginPlot("RSRQ (dB)", ImVec2(-1, 250))) {
+                        ImPlot::SetupAxes("Sample", "dB");
+                        ImPlot::SetupAxisLimits(ImAxis_Y1, -20, -3);
+                        for (auto& [pci, values] : signal.rsrq) {
+                            if (values.empty()) continue;
+                            vector<float> data(values.begin(), values.end());
+                            if (data.size() == times.size()) {
+                                ImPlot::PlotLine(("PCI=" + to_string(pci)).c_str(), times.data(), data.data(), data.size());
+                            }
+                        }
+                        ImPlot::EndPlot();
+                    }
+                    
+                    if (ImPlot::BeginPlot("RSSNR (dB)", ImVec2(-1, 250))) {
+                        ImPlot::SetupAxes("Sample", "dB");
+                        ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 30);
+                        for (auto& [pci, values] : signal.rssnr) {
+                            if (values.empty()) continue;
+                            vector<float> data(values.begin(), values.end());
+                            if (data.size() == times.size()) {
+                                ImPlot::PlotLine(("PCI=" + to_string(pci)).c_str(), times.data(), data.data(), data.size());
+                            }
+                        }
+                        ImPlot::EndPlot();
+                    }
+                }
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Location Graphs")) {
+                if (location_hist.latitudes.empty()) {
+                    ImGui::Text("No location data. Click 'Reload from DB' in Heatmap tab.");
+                } else {
+                    vector<float> times(location_hist.times.begin(), location_hist.times.end());
+                    vector<float> lats(location_hist.latitudes.begin(), location_hist.latitudes.end());
+                    vector<float> lons(location_hist.longitudes.begin(), location_hist.longitudes.end());
+                    vector<float> alts(location_hist.altitudes.begin(), location_hist.altitudes.end());
+                    vector<float> accs(location_hist.accuracies.begin(), location_hist.accuracies.end());
+                    
+                    if (ImPlot::BeginPlot("Latitude", ImVec2(-1, 200))) {
+                        ImPlot::SetupAxes("Sample", "Latitude");
+                        ImPlot::PlotLine("Latitude", times.data(), lats.data(), lats.size());
+                        ImPlot::EndPlot();
+                    }
+                    
+                    if (ImPlot::BeginPlot("Longitude", ImVec2(-1, 200))) {
+                        ImPlot::SetupAxes("Sample", "Longitude");
+                        ImPlot::PlotLine("Longitude", times.data(), lons.data(), lons.size());
+                        ImPlot::EndPlot();
+                    }
+                    
+                    if (ImPlot::BeginPlot("Altitude (m)", ImVec2(-1, 200))) {
+                        ImPlot::SetupAxes("Sample", "Meters");
+                        ImPlot::PlotLine("Altitude", times.data(), alts.data(), alts.size());
+                        ImPlot::EndPlot();
+                    }
+                    
+                    if (ImPlot::BeginPlot("Accuracy (m)", ImVec2(-1, 200))) {
+                        ImPlot::SetupAxes("Sample", "Meters");
+                        ImPlot::PlotLine("Accuracy", times.data(), accs.data(), accs.size());
+                        ImPlot::EndPlot();
+                    }
+                }
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Traffic Graphs")) {
+                if (traffic_hist.rx_bytes.empty()) {
+                    ImGui::Text("No traffic data. Click 'Reload from DB' in Heatmap tab.");
+                } else {
+                    vector<float> times(traffic_hist.times.begin(), traffic_hist.times.end());
+                    vector<float> rx_mb, tx_mb;
+                    
+                    for (size_t i = 0; i < traffic_hist.rx_bytes.size(); i++) {
+                        rx_mb.push_back(traffic_hist.rx_bytes[i] / 1024.0f / 1024.0f);
+                        tx_mb.push_back(traffic_hist.tx_bytes[i] / 1024.0f / 1024.0f);
+                    }
+                    
+                    if (ImPlot::BeginPlot("Traffic (MB)", ImVec2(-1, 300))) {
+                        ImPlot::SetupAxes("Sample", "MB");
+                        ImPlot::PlotLine("RX", times.data(), rx_mb.data(), rx_mb.size());
+                        ImPlot::PlotLine("TX", times.data(), tx_mb.data(), tx_mb.size());
+                        ImPlot::EndPlot();
+                    }
+                    
+                    long long total_rx = 0, total_tx = 0;
+                    for (auto& r : traffic_hist.rx_bytes) total_rx += r;
+                    for (auto& t : traffic_hist.tx_bytes) total_tx += t;
+                    
+                    ImGui::Text("Total RX: %s", formatBytes(total_rx).c_str());
+                    ImGui::Text("Total TX: %s", formatBytes(total_tx).c_str());
+                }
+                ImGui::EndTabItem();
+            }
+            
+            if (ImGui::BeginTabItem("Cell Info")) {
+                if (cells_by_pci.empty()) {
+                    ImGui::Text("No cell data");
+                } else {
+                    ImGui::BeginChild("Cells");
+                    for (auto& [pci, cell] : cells_by_pci) {
+                        string type = cell.value("type", "Unknown");
+                        ImGui::TextColored(type == "LTE" ? ImVec4(0,1,0,1) : ImVec4(1,1,0,1), 
+                            "PCI: %d (%s)", pci, type.c_str());
+                        ImGui::Indent();
+                        ImGui::Text("RSRP: %d dBm", cell.value("rsrp", -140));
+                        ImGui::Text("EARFCN: %d | TAC: %d | CI: %d", 
+                            cell.value("earfcn",0), cell.value("tac",0), cell.value("ci",0));
+                        ImGui::Unindent();
+                        ImGui::Separator();
+                    }
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
+            }
             
             if (ImGui::BeginTabItem("Filters")) {
-                ImGui::Text("=== Data Type Filters ===");
+                ImGui::Checkbox("Location", &shared->filter_location);
+                ImGui::Checkbox("Telephony", &shared->filter_telephony);
+                ImGui::Checkbox("Traffic", &shared->filter_traffic);
                 ImGui::Separator();
-                
-                ImGui::Checkbox("Location Data", &shared->filter_location);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_location ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_location ? "[ENABLED]" : "[DISABLED]");
-                
-                ImGui::Checkbox("Telephony Data (Cell Towers)", &shared->filter_telephony);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_telephony ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_telephony ? "[ENABLED]" : "[DISABLED]");
-                
-                ImGui::Checkbox("Traffic Data", &shared->filter_traffic);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_traffic ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_traffic ? "[ENABLED]" : "[DISABLED]");
-                
+                ImGui::Checkbox("LTE (4G)", &shared->filter_lte);
+                ImGui::Checkbox("GSM (2G)", &shared->filter_gsm);
+                ImGui::Checkbox("WCDMA (3G)", &shared->filter_wcdma);
                 ImGui::Separator();
-                ImGui::Text("=== Network Type Filters ===");
-                ImGui::Separator();
-                
-                ImGui::Checkbox("4G/LTE Cells", &shared->filter_lte);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_lte ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_lte ? "[ENABLED]" : "[DISABLED]");
-                
-                ImGui::Checkbox("2G/GSM Cells", &shared->filter_gsm);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_gsm ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_gsm ? "[ENABLED]" : "[DISABLED]");
-                
-                ImGui::Checkbox("3G/WCDMA Cells", &shared->filter_wcdma);
-                ImGui::SameLine();
-                ImGui::TextColored(shared->filter_wcdma ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), 
-                    shared->filter_wcdma ? "[ENABLED]" : "[DISABLED]");
-                
-                ImGui::Separator();
-                
-                if (ImGui::Button("Enable All", ImVec2(120, 30))) {
-                    shared->filter_location = true;
-                    shared->filter_telephony = true;
-                    shared->filter_traffic = true;
-                    shared->filter_lte = true;
-                    shared->filter_gsm = true;
-                    shared->filter_wcdma = true;
+                if (ImGui::Button("Enable All")) {
+                    shared->filter_location = shared->filter_telephony = shared->filter_traffic = true;
+                    shared->filter_lte = shared->filter_gsm = shared->filter_wcdma = true;
                 }
-                
                 ImGui::SameLine();
-                
-                if (ImGui::Button("Disable All", ImVec2(120, 30))) {
-                    shared->filter_location = false;
-                    shared->filter_telephony = false;
-                    shared->filter_traffic = false;
-                    shared->filter_lte = false;
-                    shared->filter_gsm = false;
-                    shared->filter_wcdma = false;
+                if (ImGui::Button("Disable All")) {
+                    shared->filter_location = shared->filter_telephony = shared->filter_traffic = false;
+                    shared->filter_lte = shared->filter_gsm = shared->filter_wcdma = false;
                 }
-                
                 ImGui::SameLine();
-                
-                if (ImGui::Button("Send Filters Now", ImVec2(150, 30))) {
+                if (ImGui::Button("Apply")) {
                     send_filter_command(shared, "location", shared->filter_location);
                     send_filter_command(shared, "telephony", shared->filter_telephony);
                     send_filter_command(shared, "traffic", shared->filter_traffic);
@@ -372,228 +665,17 @@ void run_gui(SharedData* shared) {
                     send_filter_command(shared, "gsm", shared->filter_gsm);
                     send_filter_command(shared, "wcdma", shared->filter_wcdma);
                 }
-                
-                ImGui::Separator();
-                
-                ImGui::Text("Command Socket Status:");
-                ImGui::SameLine();
-                
-                if (g_command_socket) {
-                    ImGui::TextColored(ImVec4(0,1,0,1), "CONNECTED");
-                } else {
-                    ImGui::TextColored(ImVec4(1,0,0,1), "DISCONNECTED");
-                }
-                
-                ImGui::EndTabItem();
-            }
-            
-            if (ImGui::BeginTabItem("Signal Graphs")) {
-                if (dbm_history.empty() && rsrp_history.empty()) {
-                    ImGui::TextColored(ImVec4(1,1,0,1), "No signal data. Waiting for data...");
-                } else {
-                    if (!time_history.empty()) {
-                        vector<float> times(time_history.begin(), time_history.end());
-                        
-                        if (!dbm_history.empty()) {
-                            vector<float> dbm_vals(dbm_history.begin(), dbm_history.end());
-                            
-                            if (ImPlot::BeginPlot("Signal Strength (dBm)", ImVec2(-1, 200))) {
-                                ImPlot::SetupAxes("Samples", "dBm");
-                                ImPlot::SetupAxisLimits(ImAxis_Y1, -120, -50);
-                                ImPlot::PlotLine("dBm", times.data(), dbm_vals.data(), dbm_vals.size());
-                                ImPlot::EndPlot();
-                            }
-                        }
-                        
-                        if (!rsrp_history.empty()) {
-                            vector<float> rsrp_vals(rsrp_history.begin(), rsrp_history.end());
-                            
-                            if (ImPlot::BeginPlot("RSRP (LTE)", ImVec2(-1, 200))) {
-                                ImPlot::SetupAxes("Samples", "dBm");
-                                ImPlot::SetupAxisLimits(ImAxis_Y1, -140, -60);
-                                ImPlot::PlotLine("RSRP", times.data(), rsrp_vals.data(), rsrp_vals.size());
-                                ImPlot::EndPlot();
-                            }
-                        }
-                        
-                        if (!rsrq_history.empty()) {
-                            vector<float> rsrq_vals(rsrq_history.begin(), rsrq_history.end());
-                            
-                            if (ImPlot::BeginPlot("RSRQ", ImVec2(-1, 200))) {
-                                ImPlot::SetupAxes("Samples", "dB");
-                                ImPlot::SetupAxisLimits(ImAxis_Y1, -20, -3);
-                                ImPlot::PlotLine("RSRQ", times.data(), rsrq_vals.data(), rsrq_vals.size());
-                                ImPlot::EndPlot();
-                            }
-                        }
-                        
-                        if (!rssnr_history.empty()) {
-                            vector<float> rssnr_vals(rssnr_history.begin(), rssnr_history.end());
-                            
-                            if (ImPlot::BeginPlot("RSSNR", ImVec2(-1, 200))) {
-                                ImPlot::SetupAxes("Samples", "dB");
-                                ImPlot::SetupAxisLimits(ImAxis_Y1, -10, 30);
-                                ImPlot::PlotLine("RSSNR", times.data(), rssnr_vals.data(), rssnr_vals.size());
-                                ImPlot::EndPlot();
-                            }
-                        }
-                        
-                        if (!level_history.empty()) {
-                            vector<float> level_vals(level_history.begin(), level_history.end());
-                            
-                            if (ImPlot::BeginPlot("Signal Level (0-4)", ImVec2(-1, 150))) {
-                                ImPlot::SetupAxes("Samples", "Level");
-                                ImPlot::SetupAxisLimits(ImAxis_Y1, -0.5, 4.5);
-                                ImPlot::PlotLine("Level", times.data(), level_vals.data(), level_vals.size());
-                                ImPlot::EndPlot();
-                            }
-                        }
-                    }
-                }
-                ImGui::EndTabItem();
-            }
-            
-            if (ImGui::BeginTabItem("Cell Info")) {
-                if (cells.empty()) {
-                    ImGui::Text("No cell data");
-                } else {
-                    ImGui::BeginChild("CellList");
-                    
-                    map<string, int> type_count;
-                    for (auto& [key, cell] : cells) {
-                        string type = cell.value("type", "Unknown");
-                        type_count[type]++;
-                    }
-                    
-                    ImGui::Text("Cell Types:");
-                    for (auto& [type, count] : type_count) {
-                        ImGui::Text("  %s: %d", type.c_str(), count);
-                    }
-                    ImGui::Separator();
-                    
-                    for (auto it = cells.rbegin(); it != cells.rend(); ++it) {
-                        auto& [key, cell] = *it;
-                        
-                        string type = cell.value("type", "Unknown");
-                        int pci = cell.value("pci", 0);
-                        int earfcn = cell.value("earfcn", 0);
-                        int tac = cell.value("tac", 0);
-                        int ci = cell.value("ci", 0);
-                        int mcc = cell.value("mcc", 0);
-                        int mnc = cell.value("mnc", 0);
-                        
-                        int dbm = cell.value("dbm", -120);
-                        int rsrp = cell.value("rsrp", -140);
-                        int rsrq = cell.value("rsrq", -20);
-                        int rssnr = cell.value("rssnr", 0);
-                        
-                        if (type == "LTE") ImGui::TextColored(ImVec4(0,1,0,1), "[4G] %s", key.c_str());
-                        else if (type == "NR") ImGui::TextColored(ImVec4(1,0,1,1), "[5G] %s", key.c_str());
-                        else ImGui::Text("[%s] %s", type.c_str(), key.c_str());
-                        
-                        ImGui::Indent(20);
-                        
-                        ImGui::Text("PCI: %d | EARFCN: %d | TAC: %d | CI: %d", pci, earfcn, tac, ci);
-                        ImGui::Text("MCC: %d | MNC: %d", mcc, mnc);
-                        
-                        ImVec4 color;
-                        if (rsrp >= -80) color = ImVec4(0,1,0,1);
-                        else if (rsrp >= -90) color = ImVec4(0,1,0,0.7);
-                        else if (rsrp >= -100) color = ImVec4(1,1,0,1);
-                        else if (rsrp >= -110) color = ImVec4(1,0.5,0,1);
-                        else color = ImVec4(1,0,0,1);
-                        
-                        ImGui::TextColored(color, "RSRP: %d dBm | RSRQ: %d dB | RSSNR: %d dB", rsrp, rsrq, rssnr);
-                        ImGui::Text("dBm: %d | Level: %d", dbm, cell.value("level", 0));
-                        
-                        ImGui::Unindent(20);
-                        ImGui::Separator();
-                    }
-                    
-                    ImGui::EndChild();
-                }
-                ImGui::EndTabItem();
-            }
-            
-            if (ImGui::BeginTabItem("Locations")) {
-                if (locations.empty()) {
-                    ImGui::Text("No location data");
-                } else {
-                    ImGui::BeginChild("Scroll");
-                    for (size_t i = 0; i < locations.size(); i++) {
-                        auto& item = locations[i];
-                        long long ts = item.value("timestamp", 0LL);
-                        
-                        if (item.contains("location")) {
-                            auto& loc = item["location"];
-                            double lat = loc.value("latitude", 0.0);
-                            double lon = loc.value("longitude", 0.0);
-                            double alt = loc.value("altitude", 0.0);
-                            double acc = loc.value("accuracy", 0.0);
-                            
-                            ImGui::Text("[%zu] %s", i+1, formatTime(ts).c_str());
-                            ImGui::Text("  Lat: %.6f, Lon: %.6f", lat, lon);
-                            ImGui::Text("  Alt: %.1fm, Acc: %.1fm", alt, acc);
-                            ImGui::Separator();
-                        }
-                    }
-                    ImGui::EndChild();
-                }
-                ImGui::EndTabItem();
-            }
-            
-            if (ImGui::BeginTabItem("Traffic")) {
-                if (traffic.empty()) {
-                    ImGui::Text("No traffic data");
-                } else {
-                    ImGui::BeginChild("TrafficList");
-                    
-                    long long total_rx_sum = 0;
-                    long long total_tx_sum = 0;
-                    
-                    for (auto it = traffic.rbegin(); it != traffic.rend(); ++it) {
-                        auto& t = *it;
-                        long long total_rx = t.value("total_rx_bytes", t.value("total_rx", 0LL));
-                        long long total_tx = t.value("total_tx_bytes", t.value("total_tx", 0LL));
-                        
-                        total_rx_sum += total_rx;
-                        total_tx_sum += total_tx;
-                        
-                        ImGui::Text("RX: %s", formatBytes(total_rx).c_str());
-                        ImGui::Text("TX: %s", formatBytes(total_tx).c_str());
-                        
-                        if (t.contains("top_apps") && !t["top_apps"].empty()) {
-                            ImGui::Indent();
-                            for (auto& [app, bytes] : t["top_apps"].items()) {
-                                ImGui::Text("%s: %s", app.c_str(), formatBytes(bytes.get<long long>()).c_str());
-                            }
-                            ImGui::Unindent();
-                        }
-                        ImGui::Separator();
-                    }
-                    
-                    ImGui::Text("TOTAL - RX: %s", formatBytes(total_rx_sum).c_str());
-                    ImGui::Text("TOTAL - TX: %s", formatBytes(total_tx_sum).c_str());
-                    
-                    ImGui::EndChild();
-                }
                 ImGui::EndTabItem();
             }
             
             ImGui::EndTabBar();
         }
         
-        ImGui::Separator();
-        ImGui::Text("Status: ");
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0,1,0,1), "● ONLINE");
-        ImGui::SameLine();
-        ImGui::Text(" | Records: %d | Cells: %zu | Traffic: %zu | Samples: %zu | Map Points: %zu", 
-                   shared->counter, cells.size(), traffic.size(), time_history.size(), map_points.size());
-        
+        ImGui::Text("Status: ONLINE | Records: %d | Cells: %zu | Map Points: %zu", 
+            shared->counter, cells_by_pci.size(), map_points.size());
         ImGui::End();
-        ImGui::Render();
         
+        ImGui::Render();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -602,7 +684,6 @@ void run_gui(SharedData* shared) {
     
     delete g_command_socket;
     delete g_context;
-    
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
     ImGui_ImplOpenGL3_Shutdown();

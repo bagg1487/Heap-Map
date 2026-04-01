@@ -1,4 +1,9 @@
+# Build directories
 build/
+cmake-build-*/
+out/
+bin/
+obj/
 *.o
 *.obj
 *.exe
@@ -7,45 +12,100 @@ build/
 *.dll
 *.so
 *.dylib
+*.a
+*.lib
 
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.code-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-*.log
-*.txt
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# Database
+postgres-data/
+pg_data/
+*.sqlite
+*.db
+
+# Data files
+data/
 *.json
-!package.json  
+*.txt
+*.log
+!package.json
 !CMakeLists.txt
+!init.sql
+!requirements.txt
 
+# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
+*.dll
+*.exe
 
-location_data.json
-location_log.txt
-*.json
-*.txt
-
+# CMake
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
-!Makefile  
+CMakeUserPresets.json
+compile_commands.json
 
-.vscode/
-*.code-workspace
-
+# Temporary files
 temp/
 tmp/
 *.bak
 *.backup
+*.tmp
+*.cache
 
+# Libraries (keep third-party)
 lib/
-!third-party/  
+!third-party/
 
+# Hidden files
 .*
 !.gitignore
 !.gitattributes
+!.clang-format
+!.clang-tidy
+
+# Project specific
+location_data.json
+location_log.txt
+heatmap_pillow.png
+heatmap.html
+generate_heatmap.py
+import_json_to_bd.py
+check-system.sh
+
+# Docker
+docker-compose.override.yml
+*.pid
+*.pid.lock
+
+# Logs
+*.log
+logs/
+
+third-party/
