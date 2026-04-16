@@ -1,11 +1,14 @@
 #pragma once
 #include <vector>
 #include "imgui.h"
+#include <string>
 
 struct MapPoint {
     double lat;
     double lon;
+    long long timestamp;
     int signal_strength;
+    std::string type;
 };
 
 void init_heatmap();

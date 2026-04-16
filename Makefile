@@ -27,8 +27,6 @@ SOURCES = $(SRC_DIR)/main.cpp \
           $(SRC_DIR)/server.cpp \
           $(SRC_DIR)/heatmap.cpp \
           $(SRC_DIR)/tile_manager.cpp \
-          $(SRC_DIR)/osm_math.cpp \
-          $(SRC_DIR)/curl_client.cpp \
           $(SRC_DIR)/db_client.cpp
 
 IMGUI_OBJECTS = $(patsubst $(THIRD_PARTY_DIR)/%.cpp,$(BUILD_DIR)/third-party/%.o,$(IMGUI_SOURCES))
