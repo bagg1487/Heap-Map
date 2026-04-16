@@ -1,453 +1,138 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <map>
-#include <cmath>
-#include <algorithm>
-#include <nlohmann/json.hpp>
-#include <cstdlib>
-#include <filesystem>
 #include "heatmap.hpp"
+#include "tile_manager.hpp"
+#include "imgui.h"
+#include <cmath>
+#include <vector>
 
-using namespace std;
-using json = nlohmann::json;
-namespace fs = std::filesystem;
+static TileManager tileManager;
+static std::vector<MapPoint> current_points;
 
-vector<json> load_json_file(const string& filename) {
-    vector<json> result;
-    ifstream file(filename);
-    if (!file.is_open()) {
-        cerr << "Cannot open file: " << filename << endl;
-        return result;
-    }
-    
-    try {
-        json data = json::parse(file);
-        if (data.is_array()) {
-            for (const auto& item : data) {
-                result.push_back(item);
-            }
-        } else {
-            result.push_back(data);
-        }
-    } catch (const exception& e) {
-        cerr << "Error parsing " << filename << ": " << e.what() << endl;
-    }
-    return result;
+static const double PI = 3.141592653589793;
+
+static double lon_to_x(double lon, int z) {
+    return (lon + 180.0) / 360.0 * (1 << z);
 }
 
-vector<DataPoint> load_all_data() {
-    vector<DataPoint> points;
-    
-    vector<json> all_data = load_json_file("data/all_data.json");
-    vector<json> location_data = load_json_file("data/location_danil.json");
-    
-    for (const auto& item : all_data) {
-        DataPoint point;
-        point.has_location = false;
-        point.has_signal = false;
-        point.rsrp = -200;
-        point.dbm = -200;
-        
-        if (item.contains("location")) {
-            auto loc = item["location"];
-            if (loc.contains("latitude") && loc.contains("longitude")) {
-                point.lat = loc["latitude"];
-                point.lon = loc["longitude"];
-                point.has_location = true;
-            }
-        }
-        
-        if (item.contains("telephony")) {
-            for (auto& [key, cell] : item["telephony"].items()) {
-                if (cell.contains("rsrp")) {
-                    int rsrp = cell["rsrp"];
-                    if (rsrp > point.rsrp) {
-                        point.rsrp = rsrp;
-                        point.has_signal = true;
-                        if (cell.contains("type")) point.type = cell["type"];
-                    }
-                }
-                if (cell.contains("dbm")) {
-                    int dbm = cell["dbm"];
-                    if (dbm > point.dbm) {
-                        point.dbm = dbm;
-                        point.has_signal = true;
-                    }
-                }
-            }
-        }
-        
-        point.timestamp = item.value("timestamp", 0LL);
-        
-        if (point.has_location) {
-            points.push_back(point);
-        }
-    }
-    
-    for (const auto& item : location_data) {
-        DataPoint point;
-        point.has_location = false;
-        point.has_signal = false;
-        point.rsrp = -200;
-        point.dbm = -200;
-        
-        if (item.contains("latitude") && item.contains("longitude")) {
-            point.lat = item["latitude"];
-            point.lon = item["longitude"];
-            point.has_location = true;
-        }
-        
-        if (item.contains("cellInfo")) {
-            string cellInfo = item["cellInfo"];
-            size_t rssi_pos = cellInfo.find("rssi=");
-            if (rssi_pos != string::npos) {
-                string rssi_str = cellInfo.substr(rssi_pos + 5);
-                int rssi_val = 0;
-                bool negative = false;
-                for (char ch : rssi_str) {
-                    if (ch == '-') {
-                        negative = true;
-                    } else if (isdigit(ch)) {
-                        rssi_val = rssi_val * 10 + (ch - '0');
-                    } else {
-                        break;
-                    }
-                }
-                if (negative) rssi_val = -rssi_val;
-                point.dbm = rssi_val;
-                point.has_signal = true;
-                point.type = "GSM";
-            }
-        }
-        
-        point.timestamp = item.value("timestamp", 0LL);
-        
-        if (point.has_location) {
-            points.push_back(point);
-        }
-    }
-    
-    return points;
+static double lat_to_y(double lat, int z) {
+    double r = lat * PI / 180.0;
+    return (1.0 - std::log(std::tan(PI / 4.0 + r / 2.0)) / PI)
+           / 2.0 * (1 << z);
 }
 
-void generate_python_heatmap_script(const vector<DataPoint>& points, const string& output_file) {
-    ofstream script("generate_heatmap.py");
-    
-    script << "#!/usr/bin/env python3\n";
-    script << "import json\n";
-    script << "from PIL import Image, ImageDraw, ImageFont\n";
-    script << "import math\n\n";
-    
-    script << "def get_color(value, max_val):\n";
-    script << "    if max_val <= 0:\n";
-    script << "        return (0, 0, 255)\n";
-    script << "    ratio = value / max_val\n";
-    script << "    if ratio < 0.2: return (0, 0, 255)\n";
-    script << "    if ratio < 0.4: return (0, 255, 255)\n";
-    script << "    if ratio < 0.6: return (0, 255, 0)\n";
-    script << "    if ratio < 0.8: return (255, 255, 0)\n";
-    script << "    return (255, 0, 0)\n\n";
-    
-    script << "points = [\n";
-    int point_count = 0;
-    for (const auto& p : points) {
-        if (p.has_location) {
-            int signal = (p.rsrp > -140) ? p.rsrp : p.dbm;
-            script << "    (" << p.lat << ", " << p.lon << ", " << signal << "),\n";
-            point_count++;
-        }
-    }
-    script << "]\n\n";
-    
-    script << "if not points:\n";
-    script << "    print('No points to plot')\n";
-    script << "    exit()\n\n";
-    
-    script << "lats = [p[0] for p in points]\n";
-    script << "lons = [p[1] for p in points]\n";
-    script << "signals = [p[2] for p in points]\n\n";
-    
-    script << "min_lat, max_lat = min(lats), max(lats)\n";
-    script << "min_lon, max_lon = min(lons), max(lons)\n";
-    script << "min_signal, max_signal = min(signals), max(signals)\n\n";
-    
-    script << "print(f'Points: {len(points)}')\n";
-    script << "print(f'Lat range: {min_lat:.6f} to {max_lat:.6f}')\n";
-    script << "print(f'Lon range: {min_lon:.6f} to {max_lon:.6f}')\n";
-    script << "print(f'Signal range: {min_signal} to {max_signal} dBm')\n\n";
-    
-    script << "width, height = 1200, 800\n";
-    script << "img = Image.new('RGB', (width, height), (30, 30, 40))\n";
-    script << "draw = ImageDraw.Draw(img)\n\n";
-    
-    script << "def lat_to_y(lat):\n";
-    script << "    if max_lat == min_lat:\n";
-    script << "        return height // 2\n";
-    script << "    return int(height - (lat - min_lat) / (max_lat - min_lat) * height)\n\n";
-    
-    script << "def lon_to_x(lon):\n";
-    script << "    if max_lon == min_lon:\n";
-    script << "        return width // 2\n";
-    script << "    return int((lon - min_lon) / (max_lon - min_lon) * width)\n\n";
-    
-    script << "radius = 6\n";
-    script << "good_signals = 0\n";
-    script << "poor_signals = 0\n\n";
-    
-    script << "for lat, lon, signal in points:\n";
-    script << "    x = lon_to_x(lon)\n";
-    script << "    y = lat_to_y(lat)\n";
-    script << "    if signal > -140:\n";
-    script << "        color_val = (signal - min_signal) / (max_signal - min_signal) if max_signal > min_signal else 0.5\n";
-    script << "        color = get_color(color_val, 1.0)\n";
-    script << "        if signal >= -80:\n";
-    script << "            good_signals += 1\n";
-    script << "        else:\n";
-    script << "            poor_signals += 1\n";
-    script << "    else:\n";
-    script << "        color = (0, 100, 200)\n";
-    script << "    draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill=color, outline=(255, 255, 255))\n\n";
-    
-    script << "draw.rectangle([0, 0, width, 35], fill=(0, 0, 0))\n";
-    script << "draw.rectangle([0, height - 25, width, height], fill=(0, 0, 0))\n\n";
-    
-    script << "try:\n";
-    script << "    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14)\n";
-    script << "except:\n";
-    script << "    font = ImageFont.load_default()\n\n";
-    
-    script << "stats_text = f'Points: {len(points)} | Signal range: {min_signal} to {max_signal} dBm | Good: {good_signals} | Poor: {poor_signals}'\n";
-    script << "draw.text((10, 10), stats_text, fill=(255, 255, 255), font=font)\n\n";
-    
-    script << "draw.text((10, height - 22), 'Excellent (-80)', fill=(0, 255, 0), font=font)\n";
-    script << "draw.text((180, height - 22), 'Good (-90)', fill=(0, 255, 255), font=font)\n";
-    script << "draw.text((330, height - 22), 'Fair (-100)', fill=(0, 255, 0), font=font)\n";
-    script << "draw.text((480, height - 22), 'Poor (-110)', fill=(255, 255, 0), font=font)\n";
-    script << "draw.text((630, height - 22), 'Very Poor', fill=(255, 0, 0), font=font)\n";
-    script << "draw.text((780, height - 22), 'No Signal', fill=(0, 100, 200), font=font)\n\n";
-    
-    script << "img.save('" << output_file << "')\n";
-    script << "print(f'Heatmap saved to " << output_file << "')\n";
-    
-    script.close();
-    
-    cout << "Python script generated: generate_heatmap.py" << endl;
-    int ret = system("python3 generate_heatmap.py");
-    if (ret != 0) {
-        cerr << "Failed to run python script. Make sure Pillow is installed: pip install pillow" << endl;
-    }
+static double x_to_lon(double x, int z) {
+    return x / (double)(1 << z) * 360.0 - 180.0;
 }
 
-void generate_signal_graphs(const vector<DataPoint>& points, const string& output_dir) {
-    vector<long long> timestamps;
-    vector<int> signal_values;
-    
-    for (const auto& p : points) {
-        if (p.timestamp > 0 && (p.rsrp > -140 || p.dbm > -140)) {
-            timestamps.push_back(p.timestamp);
-            int signal = (p.rsrp > -140) ? p.rsrp : p.dbm;
-            signal_values.push_back(signal);
-        }
-    }
-    
-    if (timestamps.empty()) {
-        cout << "No signal data found" << endl;
-        return;
-    }
-    
-    fs::create_directory(output_dir);
-    
-    ofstream html_file(output_dir + "/signal_graph.html");
-    
-    html_file << "<!DOCTYPE html>\n";
-    html_file << "<html>\n";
-    html_file << "<head>\n";
-    html_file << "    <title>Signal Graphs</title>\n";
-    html_file << "    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n";
-    html_file << "    <style>\n";
-    html_file << "        body { font-family: monospace; background: #1e1e2e; color: #fff; margin: 0; padding: 20px; }\n";
-    html_file << "        .graph { margin-bottom: 30px; }\n";
-    html_file << "        h2 { color: #0f0; }\n";
-    html_file << "    </style>\n";
-    html_file << "</head>\n";
-    html_file << "<body>\n";
-    html_file << "    <h2>Signal Strength Over Time</h2>\n";
-    html_file << "    <div id=\"signal-graph\" class=\"graph\"></div>\n";
-    html_file << "    <script>\n";
-    html_file << "        var timestamps = [";
-    
-    for (size_t i = 0; i < timestamps.size(); i++) {
-        html_file << timestamps[i];
-        if (i < timestamps.size() - 1) html_file << ",";
-    }
-    
-    html_file << "];\n";
-    html_file << "        var signalValues = [";
-    
-    for (size_t i = 0; i < signal_values.size(); i++) {
-        html_file << signal_values[i];
-        if (i < signal_values.size() - 1) html_file << ",";
-    }
-    
-    html_file << "];\n";
-    html_file << "        var timeStrings = timestamps.map(ts => new Date(ts).toLocaleString());\n";
-    html_file << "        var trace = {\n";
-    html_file << "            x: timeStrings,\n";
-    html_file << "            y: signalValues,\n";
-    html_file << "            mode: 'lines+markers',\n";
-    html_file << "            name: 'Signal (dBm)',\n";
-    html_file << "            line: { color: '#00FF00', width: 2 },\n";
-    html_file << "            marker: { size: 4, color: '#00FF00' }\n";
-    html_file << "        };\n";
-    html_file << "        var layout = {\n";
-    html_file << "            title: 'Signal Strength Over Time',\n";
-    html_file << "            xaxis: { title: 'Time', tickangle: -45 },\n";
-    html_file << "            yaxis: { title: 'dBm', range: [-120, -40] },\n";
-    html_file << "            plot_bgcolor: '#2d2d3a',\n";
-    html_file << "            paper_bgcolor: '#1e1e2e',\n";
-    html_file << "            font: { color: '#fff' }\n";
-    html_file << "        };\n";
-    html_file << "        Plotly.newPlot('signal-graph', [trace], layout);\n";
-    html_file << "    </script>\n";
-    html_file << "</body>\n";
-    html_file << "</html>";
-    
-    html_file.close();
-    cout << "Signal graph generated: " << output_dir << "/signal_graph.html" << endl;
+static double y_to_lat(double y, int z) {
+    double n = PI - 2.0 * PI * y / (1 << z);
+    return 180.0 / PI * std::atan(std::sinh(n));
 }
 
-void generate_traffic_graphs(const string& output_dir) {
-    vector<json> traffic_data = load_json_file("data/traffic.json");
-    
-    vector<long long> timestamps;
-    vector<double> rx_mb;
-    vector<double> tx_mb;
-    
-    for (const auto& item : traffic_data) {
-        long long ts = item.value("timestamp", 0LL);
-        if (ts > 0) {
-            long long rx = 0, tx = 0;
-            if (item.contains("traffic")) {
-                auto traffic = item["traffic"];
-                rx = traffic.value("total_rx_bytes", traffic.value("total_rx", 0LL));
-                tx = traffic.value("total_tx_bytes", traffic.value("total_tx", 0LL));
-            } else {
-                rx = item.value("total_rx_bytes", item.value("total_rx", 0LL));
-                tx = item.value("total_tx_bytes", item.value("total_tx", 0LL));
-            }
+static int zoom = 12;
+static double center_lon = 82.9445;
+static double center_lat = 55.0079;
+
+void init_heatmap() {
+    current_points.reserve(10000);
+}
+
+void update_map_points(const std::vector<MapPoint>& points) {
+    current_points = points;
+}
+
+void set_map_center(double lat, double lon, int z) {
+    center_lat = lat;
+    center_lon = lon;
+    zoom = z;
+}
+
+void draw_heatmap(ImDrawList* dl, ImVec2 pos, ImVec2 size) {
+    dl->PushClipRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), true);
+    tileManager.updateGL();
+
+    int tiles_x = (int)std::ceil(size.x / 256.0) + 2; 
+    int tiles_y = (int)std::ceil(size.y / 256.0) + 2;
+
+    double cx = lon_to_x(center_lon, zoom);
+    double cy = lat_to_y(center_lat, zoom);
+
+    double start_tile_x = cx - (size.x / 512.0); 
+    double start_tile_y = cy - (size.y / 512.0);
+
+    float tile_w = 256.0f; 
+    float tile_h = 256.0f;
+
+    float off_x = (float)(std::floor(start_tile_x) - start_tile_x) * tile_w;
+    float off_y = (float)(std::floor(start_tile_y) - start_tile_y) * tile_h;
+
+    for (int x = 0; x < tiles_x; x++) {
+        for (int y = 0; y < tiles_y; y++) {
+            int tx = (int)std::floor(start_tile_x) + x;
+            int ty = (int)std::floor(start_tile_y) + y;
+
+            Tile* t = tileManager.get(zoom, tx, ty);
             
-            timestamps.push_back(ts);
-            rx_mb.push_back(rx / 1024.0 / 1024.0);
-            tx_mb.push_back(tx / 1024.0 / 1024.0);
+            float x1 = pos.x + x * tile_w + off_x;
+            float y1 = pos.y + y * tile_h + off_y;
+            float x2 = x1 + tile_w;
+            float y2 = y1 + tile_h;
+
+            if (t && t->ready && t->tex) {
+                dl->AddImage((void*)(intptr_t)t->tex, ImVec2(x1, y1), ImVec2(x2, y2));
+            } else {
+                dl->AddRectFilled(ImVec2(x1, y1), ImVec2(x2, y2), IM_COL32(30, 30, 30, 255));
+            }
         }
     }
-    
-    if (timestamps.empty()) {
-        cout << "No traffic data found" << endl;
-        return;
+
+    for (const auto& p : current_points) {
+        double px = lon_to_x(p.lon, zoom);
+        double py = lat_to_y(p.lat, zoom);
+
+        float screen_x = pos.x + (float)(px - start_tile_x) * tile_w;
+        float screen_y = pos.y + (float)(py - start_tile_y) * tile_h;
+
+        if (screen_x >= pos.x && screen_x <= pos.x + size.x &&
+            screen_y >= pos.y && screen_y <= pos.y + size.y) 
+        {
+            dl->AddCircleFilled(ImVec2(screen_x, screen_y), 4.0f, IM_COL32(0, 255, 0, 200));
+        }
     }
-    
-    fs::create_directory(output_dir);
-    
-    ofstream html_file(output_dir + "/traffic_graph.html");
-    
-    html_file << "<!DOCTYPE html>\n";
-    html_file << "<html>\n";
-    html_file << "<head>\n";
-    html_file << "    <title>Traffic Graphs</title>\n";
-    html_file << "    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n";
-    html_file << "    <style>\n";
-    html_file << "        body { font-family: monospace; background: #1e1e2e; color: #fff; margin: 0; padding: 20px; }\n";
-    html_file << "        .graph { margin-bottom: 30px; }\n";
-    html_file << "        h2 { color: #0f0; }\n";
-    html_file << "    </style>\n";
-    html_file << "</head>\n";
-    html_file << "<body>\n";
-    html_file << "    <h2>Network Traffic Over Time</h2>\n";
-    html_file << "    <div id=\"traffic-graph\" class=\"graph\"></div>\n";
-    html_file << "    <script>\n";
-    html_file << "        var timestamps = [";
-    
-    for (size_t i = 0; i < timestamps.size(); i++) {
-        html_file << timestamps[i];
-        if (i < timestamps.size() - 1) html_file << ",";
-    }
-    
-    html_file << "];\n";
-    html_file << "        var rxValues = [";
-    
-    for (size_t i = 0; i < rx_mb.size(); i++) {
-        html_file << rx_mb[i];
-        if (i < rx_mb.size() - 1) html_file << ",";
-    }
-    
-    html_file << "];\n";
-    html_file << "        var txValues = [";
-    
-    for (size_t i = 0; i < tx_mb.size(); i++) {
-        html_file << tx_mb[i];
-        if (i < tx_mb.size() - 1) html_file << ",";
-    }
-    
-    html_file << "];\n";
-    html_file << "        var timeStrings = timestamps.map(ts => new Date(ts).toLocaleString());\n";
-    html_file << "        var trace1 = {\n";
-    html_file << "            x: timeStrings,\n";
-    html_file << "            y: rxValues,\n";
-    html_file << "            mode: 'lines+markers',\n";
-    html_file << "            name: 'RX (MB)',\n";
-    html_file << "            line: { color: '#00FF00', width: 2 },\n";
-    html_file << "            marker: { size: 4, color: '#00FF00' }\n";
-    html_file << "        };\n";
-    html_file << "        var trace2 = {\n";
-    html_file << "            x: timeStrings,\n";
-    html_file << "            y: txValues,\n";
-    html_file << "            mode: 'lines+markers',\n";
-    html_file << "            name: 'TX (MB)',\n";
-    html_file << "            line: { color: '#FFA500', width: 2 },\n";
-    html_file << "            marker: { size: 4, color: '#FFA500' }\n";
-    html_file << "        };\n";
-    html_file << "        var layout = {\n";
-    html_file << "            title: 'Network Traffic Over Time',\n";
-    html_file << "            xaxis: { title: 'Time', tickangle: -45 },\n";
-    html_file << "            yaxis: { title: 'MB' },\n";
-    html_file << "            plot_bgcolor: '#2d2d3a',\n";
-    html_file << "            paper_bgcolor: '#1e1e2e',\n";
-    html_file << "            font: { color: '#fff' }\n";
-    html_file << "        };\n";
-    html_file << "        Plotly.newPlot('traffic-graph', [trace1, trace2], layout);\n";
-    html_file << "    </script>\n";
-    html_file << "</body>\n";
-    html_file << "</html>";
-    
-    html_file.close();
-    cout << "Traffic graph generated: " << output_dir << "/traffic_graph.html" << endl;
+
+    dl->PopClipRect();
 }
 
-void run_heatmap_generator() {
-    cout << "Loading data from JSON files..." << endl;
-    vector<DataPoint> points = load_all_data();
-    cout << "Loaded " << points.size() << " total records" << endl;
-    
-    vector<DataPoint> points_with_location;
-    for (const auto& p : points) {
-        if (p.has_location) {
-            points_with_location.push_back(p);
-        }
+void draw_heatmap_ui() {
+    ImGui::Text("Zoom: %d", zoom);
+    ImGui::Text("Lat: %.5f, Lon: %.5f", center_lat, center_lon);
+    ImGui::Text("Points: %zu", current_points.size());
+}
+
+void handle_map_input(ImVec2 pos, ImVec2 size) {
+    if (!ImGui::IsItemHovered()) return;
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (io.MouseWheel != 0) {
+        int old_zoom = zoom;
+        zoom += (io.MouseWheel > 0 ? 1 : -1);
+        if (zoom < 1) zoom = 1;
+        if (zoom > 18) zoom = 18;
     }
-    cout << "Points with location: " << points_with_location.size() << endl;
-    
-    fs::create_directory("graphs");
-    
-    generate_python_heatmap_script(points_with_location, "heatmap_pillow.png");
-    
-    cout << "Generating signal graphs..." << endl;
-    generate_signal_graphs(points, "graphs");
-    
-    cout << "Generating traffic graphs..." << endl;
-    generate_traffic_graphs("graphs");
-    
-    cout << "Done! Check heatmap_pillow.png and graphs/ folder" << endl;
+
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 delta = io.MouseDelta;
+
+        double tile_px_w = size.x / 6.0;
+        double tile_px_h = size.y / 4.0;
+
+        double dx = delta.x / tile_px_w;
+        double dy = delta.y / tile_px_h;
+
+        double cx = lon_to_x(center_lon, zoom);
+        double cy = lat_to_y(center_lat, zoom);
+
+        center_lon = x_to_lon(cx - dx, zoom);
+        center_lat = y_to_lat(cy - dy, zoom);
+    }
 }

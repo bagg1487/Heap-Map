@@ -17772,5 +17772,1221 @@
             "total_rx_bytes": 69335972161,
             "total_tx_bytes": 27514760082
         }
+    },
+    {
+        "timestamp": 1775105797933,
+        "traffic": {
+            "total_rx_bytes": 116544408,
+            "total_tx_bytes": 97529163
+        }
+    },
+    {
+        "location": {
+            "accuracy": 44.727375,
+            "altitude": 141.2098388671875,
+            "latitude": 55.013173,
+            "longitude": 82.95142578
+        },
+        "timestamp": 1775105803367,
+        "traffic": {
+            "total_rx_bytes": 116555794,
+            "total_tx_bytes": 97538591
+        }
+    },
+    {
+        "location": {
+            "accuracy": 44.727375,
+            "altitude": 141.2098388671875,
+            "latitude": 55.013173,
+            "longitude": 82.95142578
+        },
+        "timestamp": 1775105809665,
+        "traffic": {
+            "total_rx_bytes": 116559516,
+            "total_tx_bytes": 97545930
+        }
+    },
+    {
+        "location": {
+            "accuracy": 37.617905,
+            "altitude": 130.37200927734375,
+            "latitude": 55.01305578,
+            "longitude": 82.95118187
+        },
+        "timestamp": 1775105815122,
+        "traffic": {
+            "total_rx_bytes": 116563839,
+            "total_tx_bytes": 97551111
+        }
+    },
+    {
+        "location": {
+            "accuracy": 37.617905,
+            "altitude": 130.37200927734375,
+            "latitude": 55.01305578,
+            "longitude": 82.95118187
+        },
+        "timestamp": 1775105820447,
+        "traffic": {
+            "total_rx_bytes": 116569867,
+            "total_tx_bytes": 97561760
+        }
+    },
+    {
+        "location": {
+            "accuracy": 19.77934,
+            "altitude": 110.297119140625,
+            "latitude": 55.01310046,
+            "longitude": 82.95095001
+        },
+        "timestamp": 1775105825946,
+        "traffic": {
+            "total_rx_bytes": 116577177,
+            "total_tx_bytes": 97566874
+        }
+    },
+    {
+        "location": {
+            "accuracy": 19.77934,
+            "altitude": 110.297119140625,
+            "latitude": 55.01310046,
+            "longitude": 82.95095001
+        },
+        "timestamp": 1775105831378,
+        "traffic": {
+            "total_rx_bytes": 116578997,
+            "total_tx_bytes": 97571960
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105836904,
+        "traffic": {
+            "total_rx_bytes": 116585890,
+            "total_tx_bytes": 97576526
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105842257,
+        "traffic": {
+            "total_rx_bytes": 116737837,
+            "total_tx_bytes": 97732323
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105847655,
+        "traffic": {
+            "total_rx_bytes": 116738677,
+            "total_tx_bytes": 97733249
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105853186,
+        "traffic": {
+            "total_rx_bytes": 116741154,
+            "total_tx_bytes": 97742008
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105858616,
+        "traffic": {
+            "total_rx_bytes": 116743347,
+            "total_tx_bytes": 97744543
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105864039,
+        "traffic": {
+            "total_rx_bytes": 116745844,
+            "total_tx_bytes": 97748458
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105869468,
+        "traffic": {
+            "total_rx_bytes": 116749592,
+            "total_tx_bytes": 97755641
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105874892,
+        "traffic": {
+            "total_rx_bytes": 116763492,
+            "total_tx_bytes": 97770007
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105880218,
+        "traffic": {
+            "total_rx_bytes": 116888491,
+            "total_tx_bytes": 97905899
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105885644,
+        "traffic": {
+            "total_rx_bytes": 116893867,
+            "total_tx_bytes": 97912053
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105891071,
+        "traffic": {
+            "total_rx_bytes": 116896006,
+            "total_tx_bytes": 97922967
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105896467,
+        "traffic": {
+            "total_rx_bytes": 116898444,
+            "total_tx_bytes": 97938340
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105901868,
+        "traffic": {
+            "total_rx_bytes": 116978197,
+            "total_tx_bytes": 97999904
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105907251,
+        "traffic": {
+            "total_rx_bytes": 116982199,
+            "total_tx_bytes": 98003207
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105912682,
+        "traffic": {
+            "total_rx_bytes": 116987643,
+            "total_tx_bytes": 98013282
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105918124,
+        "traffic": {
+            "total_rx_bytes": 117009376,
+            "total_tx_bytes": 98041262
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105923491,
+        "traffic": {
+            "total_rx_bytes": 117015940,
+            "total_tx_bytes": 98047403
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105928959,
+        "traffic": {
+            "total_rx_bytes": 117019418,
+            "total_tx_bytes": 98051893
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105934310,
+        "traffic": {
+            "total_rx_bytes": 117020702,
+            "total_tx_bytes": 98053571
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105939714,
+        "traffic": {
+            "total_rx_bytes": 117022646,
+            "total_tx_bytes": 98056142
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105945098,
+        "traffic": {
+            "total_rx_bytes": 117032589,
+            "total_tx_bytes": 98070224
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105950565,
+        "traffic": {
+            "total_rx_bytes": 117034673,
+            "total_tx_bytes": 98076919
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105955993,
+        "traffic": {
+            "total_rx_bytes": 117074959,
+            "total_tx_bytes": 98087192
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105961410,
+        "traffic": {
+            "total_rx_bytes": 117077393,
+            "total_tx_bytes": 98091071
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105966829,
+        "traffic": {
+            "total_rx_bytes": 117080916,
+            "total_tx_bytes": 98094481
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105972481,
+        "traffic": {
+            "total_rx_bytes": 117098061,
+            "total_tx_bytes": 98115018
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105977807,
+        "traffic": {
+            "total_rx_bytes": 117100681,
+            "total_tx_bytes": 98122041
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105983234,
+        "traffic": {
+            "total_rx_bytes": 117232613,
+            "total_tx_bytes": 98254473
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105988663,
+        "traffic": {
+            "total_rx_bytes": 117239522,
+            "total_tx_bytes": 98282006
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105994065,
+        "traffic": {
+            "total_rx_bytes": 117241714,
+            "total_tx_bytes": 98284136
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775105999514,
+        "traffic": {
+            "total_rx_bytes": 117243994,
+            "total_tx_bytes": 98293877
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106004829,
+        "traffic": {
+            "total_rx_bytes": 117246009,
+            "total_tx_bytes": 98297045
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106010164,
+        "traffic": {
+            "total_rx_bytes": 117333834,
+            "total_tx_bytes": 98380900
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106015589,
+        "traffic": {
+            "total_rx_bytes": 117339995,
+            "total_tx_bytes": 98389429
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106020914,
+        "traffic": {
+            "total_rx_bytes": 117343771,
+            "total_tx_bytes": 98396165
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106026257,
+        "traffic": {
+            "total_rx_bytes": 117369674,
+            "total_tx_bytes": 98424490
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106031850,
+        "traffic": {
+            "total_rx_bytes": 117390515,
+            "total_tx_bytes": 98447948
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106037197,
+        "traffic": {
+            "total_rx_bytes": 117396035,
+            "total_tx_bytes": 98458040
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106042659,
+        "traffic": {
+            "total_rx_bytes": 117489411,
+            "total_tx_bytes": 98553830
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106047952,
+        "traffic": {
+            "total_rx_bytes": 117585673,
+            "total_tx_bytes": 98647757
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106053322,
+        "traffic": {
+            "total_rx_bytes": 118021848,
+            "total_tx_bytes": 99083993
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106058704,
+        "traffic": {
+            "total_rx_bytes": 118057133,
+            "total_tx_bytes": 99125368
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106064143,
+        "traffic": {
+            "total_rx_bytes": 118098512,
+            "total_tx_bytes": 99169829
+        }
+    },
+    {
+        "location": {
+            "accuracy": 24.689224,
+            "altitude": 137.1204833984375,
+            "latitude": 55.01302047,
+            "longitude": 82.95136701
+        },
+        "timestamp": 1775106069659,
+        "traffic": {
+            "total_rx_bytes": 118116148,
+            "total_tx_bytes": 99193531
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107549693,
+        "traffic": {
+            "total_rx_bytes": 926060113,
+            "total_tx_bytes": 396946785
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107555123,
+        "traffic": {
+            "total_rx_bytes": 926328494,
+            "total_tx_bytes": 397148718
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107560406,
+        "traffic": {
+            "total_rx_bytes": 926342621,
+            "total_tx_bytes": 397161027
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107565827,
+        "traffic": {
+            "total_rx_bytes": 926356984,
+            "total_tx_bytes": 397185195
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107571282,
+        "traffic": {
+            "total_rx_bytes": 926387480,
+            "total_tx_bytes": 397219896
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107576506,
+        "traffic": {
+            "total_rx_bytes": 926395336,
+            "total_tx_bytes": 397230074
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.835978,
+            "altitude": 145.2318115234375,
+            "latitude": 55.01300777,
+            "longitude": 82.95130735
+        },
+        "timestamp": 1775107581814,
+        "traffic": {
+            "total_rx_bytes": 926463890,
+            "total_tx_bytes": 397302355
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.270073,
+            "altitude": 133.4913330078125,
+            "latitude": 55.01305102,
+            "longitude": 82.95127047
+        },
+        "timestamp": 1775107590280,
+        "traffic": {
+            "total_rx_bytes": 926550022,
+            "total_tx_bytes": 397389240
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.270073,
+            "altitude": 133.4913330078125,
+            "latitude": 55.01305102,
+            "longitude": 82.95127047
+        },
+        "timestamp": 1775107595574,
+        "traffic": {
+            "total_rx_bytes": 926610041,
+            "total_tx_bytes": 397452934
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.270073,
+            "altitude": 133.4913330078125,
+            "latitude": 55.01305102,
+            "longitude": 82.95127047
+        },
+        "timestamp": 1775107600882,
+        "traffic": {
+            "total_rx_bytes": 926770997,
+            "total_tx_bytes": 397623746
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.270073,
+            "altitude": 133.4913330078125,
+            "latitude": 55.01305102,
+            "longitude": 82.95127047
+        },
+        "timestamp": 1775107606263,
+        "traffic": {
+            "total_rx_bytes": 927099875,
+            "total_tx_bytes": 398272333
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.5797,
+            "altitude": 129.4146728515625,
+            "latitude": 55.01307099,
+            "longitude": 82.95113677
+        },
+        "timestamp": 1775107611637,
+        "traffic": {
+            "total_rx_bytes": 927344367,
+            "total_tx_bytes": 398497216
+        }
+    },
+    {
+        "location": {
+            "accuracy": 12.31479,
+            "altitude": 123.699951171875,
+            "latitude": 55.01310305,
+            "longitude": 82.95078189
+        },
+        "timestamp": 1775107617002,
+        "traffic": {
+            "total_rx_bytes": 927352731,
+            "total_tx_bytes": 398506346
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107622349,
+        "traffic": {
+            "total_rx_bytes": 927370552,
+            "total_tx_bytes": 398539624
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107627719,
+        "traffic": {
+            "total_rx_bytes": 927381537,
+            "total_tx_bytes": 398551530
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107633055,
+        "traffic": {
+            "total_rx_bytes": 930927757,
+            "total_tx_bytes": 400093897
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107638331,
+        "traffic": {
+            "total_rx_bytes": 942793742,
+            "total_tx_bytes": 404738065
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107643649,
+        "traffic": {
+            "total_rx_bytes": 951181251,
+            "total_tx_bytes": 407834231
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107649085,
+        "traffic": {
+            "total_rx_bytes": 951186718,
+            "total_tx_bytes": 407840783
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107654451,
+        "traffic": {
+            "total_rx_bytes": 951200416,
+            "total_tx_bytes": 407866378
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107659819,
+        "traffic": {
+            "total_rx_bytes": 951202928,
+            "total_tx_bytes": 407872878
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107665272,
+        "traffic": {
+            "total_rx_bytes": 951218571,
+            "total_tx_bytes": 407895869
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107670545,
+        "traffic": {
+            "total_rx_bytes": 951240010,
+            "total_tx_bytes": 407915979
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107675822,
+        "traffic": {
+            "total_rx_bytes": 951299912,
+            "total_tx_bytes": 407976077
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107681135,
+        "traffic": {
+            "total_rx_bytes": 952512049,
+            "total_tx_bytes": 409198557
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107686497,
+        "traffic": {
+            "total_rx_bytes": 952841950,
+            "total_tx_bytes": 409518182
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107691822,
+        "traffic": {
+            "total_rx_bytes": 952919871,
+            "total_tx_bytes": 409603955
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107697166,
+        "traffic": {
+            "total_rx_bytes": 954127567,
+            "total_tx_bytes": 410811787
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107702444,
+        "traffic": {
+            "total_rx_bytes": 954387788,
+            "total_tx_bytes": 411072399
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107707677,
+        "traffic": {
+            "total_rx_bytes": 954439611,
+            "total_tx_bytes": 411124290
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107712971,
+        "traffic": {
+            "total_rx_bytes": 954486065,
+            "total_tx_bytes": 411169515
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107718263,
+        "traffic": {
+            "total_rx_bytes": 954831859,
+            "total_tx_bytes": 411473082
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107723614,
+        "traffic": {
+            "total_rx_bytes": 954885602,
+            "total_tx_bytes": 411536061
+        }
+    },
+    {
+        "location": {
+            "accuracy": 11.733616,
+            "altitude": 122.67462158203125,
+            "latitude": 55.01314238,
+            "longitude": 82.95064451
+        },
+        "timestamp": 1775107728937,
+        "traffic": {
+            "total_rx_bytes": 954893078,
+            "total_tx_bytes": 411544231
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109034685,
+        "traffic": {
+            "total_rx_bytes": 1604649066,
+            "total_tx_bytes": 588236619
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109039688,
+        "traffic": {
+            "total_rx_bytes": 1609254036,
+            "total_tx_bytes": 590171784
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109045450,
+        "traffic": {
+            "total_rx_bytes": 1625692633,
+            "total_tx_bytes": 596096892
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109050786,
+        "traffic": {
+            "total_rx_bytes": 1641681263,
+            "total_tx_bytes": 601734574
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109056060,
+        "traffic": {
+            "total_rx_bytes": 1655199846,
+            "total_tx_bytes": 606512416
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109061354,
+        "traffic": {
+            "total_rx_bytes": 1666333976,
+            "total_tx_bytes": 610430569
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109066649,
+        "traffic": {
+            "total_rx_bytes": 1677111573,
+            "total_tx_bytes": 614133881
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109071987,
+        "traffic": {
+            "total_rx_bytes": 1685137884,
+            "total_tx_bytes": 616964048
+        }
+    },
+    {
+        "location": {
+            "accuracy": 14.813903,
+            "altitude": 130.98651123046875,
+            "latitude": 55.01310324,
+            "longitude": 82.95088186
+        },
+        "timestamp": 1775109077308,
+        "traffic": {
+            "total_rx_bytes": 1691943649,
+            "total_tx_bytes": 619267154
+        }
     }
 ]

@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I./third-party/implot -I/usr/include -I/usr/include/python3.10 -I/usr/include/postgresql
-LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11 -lpython3.10 -lpqxx -lpq
+CXXFLAGS = -std=c++17 -I./include -I./third-party -I./third-party/imgui -I./third-party/imgui/backends -I./third-party/implot -I./third-party/stb -I/usr/include -I/usr/include/postgresql
+LDFLAGS = -lzmq -lglfw -lGL -lpthread -ldl -lX11 -lpqxx -lpq -lcurl -lstb
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -25,7 +25,11 @@ IMPLOT_SOURCES = \
 SOURCES = $(SRC_DIR)/main.cpp \
           $(SRC_DIR)/gui.cpp \
           $(SRC_DIR)/server.cpp \
-          $(SRC_DIR)/heatmap.cpp
+          $(SRC_DIR)/heatmap.cpp \
+          $(SRC_DIR)/tile_manager.cpp \
+          $(SRC_DIR)/osm_math.cpp \
+          $(SRC_DIR)/curl_client.cpp \
+          $(SRC_DIR)/db_client.cpp
 
 IMGUI_OBJECTS = $(patsubst $(THIRD_PARTY_DIR)/%.cpp,$(BUILD_DIR)/third-party/%.o,$(IMGUI_SOURCES))
 IMPLOT_OBJECTS = $(patsubst $(THIRD_PARTY_DIR)/%.cpp,$(BUILD_DIR)/third-party/%.o,$(IMPLOT_SOURCES))
@@ -38,7 +42,7 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
-	@echo "Build complete! Run ./$(TARGET)"
+	@echo "Build complete!"
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
@@ -50,7 +54,6 @@ $(BUILD_DIR)/third-party/%.o: $(THIRD_PARTY_DIR)/%.cpp
 
 clean:
 	rm -rf $(BUILD_DIR)
-	find . -name "*.o" -type f -delete
 	@echo "Clean complete!"
 
 run: $(TARGET)
@@ -59,10 +62,4 @@ run: $(TARGET)
 debug: CXXFLAGS += -g -O0
 debug: clean all
 
-generate_heatmap:
-	python3 generate_heatmap.py
-
-install_python_deps:
-	pip3 install pillow
-
-.PHONY: all clean run debug generate_heatmap install_python_deps
+.PHONY: all clean run debug

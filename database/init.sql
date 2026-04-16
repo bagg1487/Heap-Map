@@ -1,11 +1,9 @@
--- Основная таблица измерений
 CREATE TABLE IF NOT EXISTS measurements (
     id SERIAL PRIMARY KEY,
     timestamp BIGINT,
     imei TEXT
 );
 
--- Таблица локаций
 CREATE TABLE IF NOT EXISTS locations (
     id SERIAL PRIMARY KEY,
     measurement_id INT REFERENCES measurements(id) ON DELETE CASCADE,
@@ -16,7 +14,6 @@ CREATE TABLE IF NOT EXISTS locations (
     speed DOUBLE PRECISION
 );
 
--- Таблица сотовых ячеек
 CREATE TABLE IF NOT EXISTS cells (
     id SERIAL PRIMARY KEY,
     measurement_id INT REFERENCES measurements(id) ON DELETE CASCADE,
@@ -31,7 +28,6 @@ CREATE TABLE IF NOT EXISTS cells (
     earfcn INT
 );
 
--- Таблица трафика
 CREATE TABLE IF NOT EXISTS traffic (
     id SERIAL PRIMARY KEY,
     measurement_id INT REFERENCES measurements(id) ON DELETE CASCADE,
@@ -41,7 +37,6 @@ CREATE TABLE IF NOT EXISTS traffic (
     total_tx BIGINT
 );
 
--- Индексы для ускорения запросов
 CREATE INDEX IF NOT EXISTS idx_locations_coords ON locations(latitude, longitude);
 CREATE INDEX IF NOT EXISTS idx_cells_signal ON cells(dbm);
 CREATE INDEX IF NOT EXISTS idx_measurements_timestamp ON measurements(timestamp);

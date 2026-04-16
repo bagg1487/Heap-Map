@@ -17,7 +17,6 @@ services:
     networks:
       - cellmap_network
 
-  # Опционально: pgAdmin для удобного просмотра БД
   pgadmin:
     image: dpage/pgadmin4
     container_name: cellmap_pgadmin

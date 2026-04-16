@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "db_client.hpp"
 #include <zmq.hpp>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -12,8 +13,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <pqxx/pqxx>
-
+#include <signal.h>
+#include <memory>
+#include <regex>
 #ifndef _WIN32
 #include <ifaddrs.h>
 #include <netinet/in.h>
@@ -26,7 +28,8 @@ using namespace zmq;
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-pqxx::connection* db_conn = nullptr;
+// Глобальный клиент БД (заменяет db_conn)
+static unique_ptr<DBClient> g_db_client;
 
 string get_local_ip() {
     string ip = "127.0.0.1";
@@ -57,83 +60,66 @@ string get_local_ip() {
     return ip;
 }
 
-void save_to_db(const json& data) {
-    if (!db_conn) return;
+// Сохранение в БД через DBClient (заменяет старую save_to_db)
+void save_to_db_v2(const json& data) {
+    if (!g_db_client || !g_db_client->isConnected()) return;
+    g_db_client->importJsonData(data);
+}
+
+// Обработка HTTP запросов для тайлов
+void handle_tile_request(int client_fd, const string& path) {
+    // Формат: /tile/{z}/{x}/{y}.png
+    regex tile_pattern(R"(/tile/(\d+)/(\d+)/(\d+)\.png)");
+    smatch match;
     
-    try {
-        pqxx::work txn(*db_conn);
+    string response;
+    string content_type = "image/png";
+    
+    if (regex_match(path, match, tile_pattern)) {
+        int z = stoi(match[1]);
+        int x = stoi(match[2]);
+        int y = stoi(match[3]);
         
-        long long timestamp = data.value("timestamp", 0LL);
-        string imei = data.value("imei", "");
+        // Путь к кэшированному тайлу
+        string cache_path = "build/tiles_cache/" + to_string(z) + "/" + 
+                           to_string(x) + "/" + to_string(y) + ".png";
         
-        pqxx::result res = txn.exec_params(
-            "INSERT INTO measurements (timestamp, imei) VALUES ($1, $2) RETURNING id",
-            timestamp, imei
-        );
-        int measurement_id = res[0][0].as<int>();
-        
-        if (data.contains("location") && !data["location"].is_null()) {
-            auto& loc = data["location"];
-            txn.exec_params(
-                "INSERT INTO locations (measurement_id, latitude, longitude, altitude, accuracy, speed) "
-                "VALUES ($1, $2, $3, $4, $5, $6)",
-                measurement_id,
-                loc.value("latitude", 0.0),
-                loc.value("longitude", 0.0),
-                loc.value("altitude", 0.0),
-                loc.value("accuracy", 0.0),
-                loc.value("speed", 0.0)
-            );
+        ifstream file(cache_path, ios::binary);
+        if (file.is_open()) {
+            stringstream ss;
+            ss << file.rdbuf();
+            response = ss.str();
+            content_type = "image/png";
+        } else {
+            response = "Tile not found";
+            content_type = "text/plain";
         }
-        
-        if (data.contains("telephony") && !data["telephony"].is_null()) {
-            for (auto& [key, cell] : data["telephony"].items()) {
-                if (cell.is_object()) {
-                    txn.exec_params(
-                        "INSERT INTO cells (measurement_id, type, dbm, rsrp, pci, tac, mcc, mnc, ci, earfcn) "
-                        "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-                        measurement_id,
-                        cell.value("type", ""),
-                        cell.value("dbm", 0),
-                        cell.value("rsrp", 0),
-                        cell.value("pci", 0),
-                        cell.value("tac", cell.value("lac", 0)),
-                        cell.value("mcc", 0),
-                        cell.value("mnc", 0),
-                        cell.value("ci", cell.value("cid", 0LL)),
-                        cell.value("earfcn", 0)
-                    );
-                }
-            }
-        }
-        
-        if (data.contains("traffic") && !data["traffic"].is_null()) {
-            auto& traffic = data["traffic"];
-            txn.exec_params(
-                "INSERT INTO traffic (measurement_id, mobile_rx, mobile_tx, total_rx, total_tx) "
-                "VALUES ($1, $2, $3, $4, $5)",
-                measurement_id,
-                traffic.value("mobile_rx_bytes", 0LL),
-                traffic.value("mobile_tx_bytes", 0LL),
-                traffic.value("total_rx_bytes", 0LL),
-                traffic.value("total_tx_bytes", 0LL)
-            );
-        }
-        
-        txn.commit();
-        cout << "Saved to DB, id: " << measurement_id << endl;
-        
-    } catch (const exception& e) {
-        cerr << "DB error: " << e.what() << endl;
+    } else {
+        response = "Not found";
+        content_type = "text/plain";
     }
+    
+    string http_response = "HTTP/1.1 200 OK\r\n";
+    http_response += "Content-Type: " + content_type + "\r\n";
+    http_response += "Access-Control-Allow-Origin: *\r\n";
+    http_response += "Content-Length: " + to_string(response.length()) + "\r\n";
+    http_response += "Connection: close\r\n\r\n";
+    http_response += response;
+    
+    send(client_fd, http_response.c_str(), http_response.length(), 0);
 }
 
 void run_http_server(SharedData* shared) {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0) return;
+    if (server_fd < 0) {
+        cerr << "HTTP socket creation failed" << endl;
+        return;
+    }
     
     int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        cerr << "HTTP setsockopt failed" << endl;
+    }
     
     struct sockaddr_in address;
     address.sin_family = AF_INET;
@@ -141,12 +127,12 @@ void run_http_server(SharedData* shared) {
     address.sin_port = htons(8081);
     
     if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        cerr << "HTTP server bind failed" << endl;
+        cerr << "HTTP server bind failed on port 8081" << endl;
         close(server_fd);
         return;
     }
     
-    if (listen(server_fd, 3) < 0) {
+    if (listen(server_fd, 10) < 0) {
         cerr << "HTTP server listen failed" << endl;
         close(server_fd);
         return;
@@ -161,85 +147,171 @@ void run_http_server(SharedData* shared) {
         
         if (client_fd < 0) continue;
         
-        char buffer[4096] = {0};
+        char buffer[8192] = {0};
         read(client_fd, buffer, sizeof(buffer) - 1);
         
         string request(buffer);
         string response;
         string content_type = "text/html";
         
-        if (request.find("GET /") != string::npos) {
-            string path = "/";
-            size_t path_start = request.find("GET ") + 4;
-            size_t path_end = request.find(" ", path_start);
-            if (path_end != string::npos) {
-                path = request.substr(path_start, path_end - path_start);
-            }
-            
-            if (path == "/" || path == "/heatmap.html") {
-                ifstream file("heatmap.html");
-                if (file.is_open()) {
-                    stringstream ss;
-                    ss << file.rdbuf();
-                    response = ss.str();
-                    content_type = "text/html";
-                } else {
-                    response = "<html><body><h1>heatmap.html not found</h1></body></html>";
-                }
-            }
-            else if (path == "/generate_heatmap") {
-                system("python3 generate_heatmap.py");
-                response = "{\"status\": \"generated\"}";
-                content_type = "application/json";
-            }
-            else if (path == "/data/all_data.json") {
-                ifstream file("data/all_data.json");
-                if (file.is_open()) {
-                    stringstream ss;
-                    ss << file.rdbuf();
-                    response = ss.str();
-                    content_type = "application/json";
-                } else {
-                    response = "[]";
-                    content_type = "application/json";
-                }
-            }
-            else if (path == "/data/location_danil.json") {
-                ifstream file("data/location_danil.json");
-                if (file.is_open()) {
-                    stringstream ss;
-                    ss << file.rdbuf();
-                    response = ss.str();
-                    content_type = "application/json";
-                } else {
-                    response = "[]";
-                }
-            }
-            else if (path == "/data/locations.json") {
-                ifstream file("data/locations.json");
-                if (file.is_open()) {
-                    stringstream ss;
-                    ss << file.rdbuf();
-                    response = ss.str();
-                    content_type = "application/json";
-                } else {
-                    response = "[]";
-                }
-            }
-            else {
-                response = "<html><body><h1>404 Not Found</h1></body></html>";
-            }
-            
-            string http_response = "HTTP/1.1 200 OK\r\n";
-            http_response += "Content-Type: " + content_type + "\r\n";
-            http_response += "Access-Control-Allow-Origin: *\r\n";
-            http_response += "Content-Length: " + to_string(response.length()) + "\r\n";
-            http_response += "Connection: close\r\n\r\n";
-            http_response += response;
-            
-            send(client_fd, http_response.c_str(), http_response.length(), 0);
+        // Парсим путь
+        string path = "/";
+        size_t path_start = request.find("GET ") + 4;
+        size_t path_end = request.find(" ", path_start);
+        if (path_end != string::npos) {
+            path = request.substr(path_start, path_end - path_start);
         }
         
+        // Обработка запросов тайлов
+        if (path.find("/tile/") == 0) {
+            handle_tile_request(client_fd, path);
+            close(client_fd);
+            continue;
+        }
+        
+        // Обработка API запросов
+        if (path == "/api/points") {
+            if (g_db_client && g_db_client->isConnected()) {
+                auto points = g_db_client->loadPoints(10000);
+                json points_json = json::array();
+                for (const auto& p : points) {
+                    points_json.push_back({
+                        {"lat", p.lat},
+                        {"lon", p.lon},
+                        {"signal", p.signal_strength},
+                        {"timestamp", p.timestamp}
+                    });
+                }
+                response = points_json.dump();
+                content_type = "application/json";
+            } else {
+                response = "[]";
+                content_type = "application/json";
+            }
+        }
+        else if (path == "/api/stats") {
+            if (g_db_client && g_db_client->isConnected()) {
+                json stats = {
+                    {"measurements", g_db_client->getMeasurementCount()},
+                    {"cells", g_db_client->getCellCount()},
+                    {"locations", g_db_client->getLocationCount()},
+                    {"traffic", g_db_client->getTrafficCount()}
+                };
+                response = stats.dump();
+                content_type = "application/json";
+            } else {
+                response = "{}";
+                content_type = "application/json";
+            }
+        }
+        else if (path == "/api/import") {
+            // Импорт JSON файлов через API
+            if (g_db_client && g_db_client->isConnected()) {
+                g_db_client->importJsonDirectory("data");
+                response = "{\"status\": \"import started\"}";
+                content_type = "application/json";
+            } else {
+                response = "{\"error\": \"DB not connected\"}";
+                content_type = "application/json";
+            }
+        }
+        else if (path == "/" || path == "/heatmap.html") {
+            ifstream file("heatmap.html");
+            if (file.is_open()) {
+                stringstream ss;
+                ss << file.rdbuf();
+                response = ss.str();
+                content_type = "text/html";
+            } else {
+                response = R"(
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Heatmap</title>
+                    <style>
+                        #map { height: 100vh; width: 100vw; }
+                        body { margin: 0; padding: 0; }
+                    </style>
+                </head>
+                <body>
+                    <div id="map"></div>
+                    <script>
+                        var map = L.map('map').setView([55.007969, 82.944546], 13);
+                        L.tileLayer('http://localhost:8081/tile/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+                            maxZoom: 18
+                        }).addTo(map);
+                        
+                        fetch('/api/points')
+                            .then(r => r.json())
+                            .then(points => {
+                                points.forEach(p => {
+                                    L.circleMarker([p.lat, p.lon], {
+                                        radius: 3,
+                                        color: p.signal > -80 ? '#00ff00' : p.signal > -90 ? '#64ff00' : p.signal > -100 ? '#ffff00' : '#ff0000',
+                                        weight: 1,
+                                        fillOpacity: 0.8
+                                    }).addTo(map).bindPopup('Signal: ' + p.signal + ' dBm');
+                                });
+                            });
+                    </script>
+                </body>
+                </html>
+                )";
+                content_type = "text/html";
+            }
+        }
+        else if (path == "/generate_heatmap") {
+            system("python3 generate_heatmap.py");
+            response = "{\"status\": \"generated\"}";
+            content_type = "application/json";
+        }
+        else if (path == "/data/all_data.json") {
+            ifstream file("data/all_data.json");
+            if (file.is_open()) {
+                stringstream ss;
+                ss << file.rdbuf();
+                response = ss.str();
+                content_type = "application/json";
+            } else {
+                response = "[]";
+                content_type = "application/json";
+            }
+        }
+        else if (path == "/data/location_danil.json") {
+            ifstream file("data/location_danil.json");
+            if (file.is_open()) {
+                stringstream ss;
+                ss << file.rdbuf();
+                response = ss.str();
+                content_type = "application/json";
+            } else {
+                response = "[]";
+            }
+        }
+        else if (path == "/data/locations.json") {
+            ifstream file("data/locations.json");
+            if (file.is_open()) {
+                stringstream ss;
+                ss << file.rdbuf();
+                response = ss.str();
+                content_type = "application/json";
+            } else {
+                response = "[]";
+            }
+        }
+        else {
+            response = "<html><body><h1>404 Not Found</h1></body></html>";
+        }
+        
+        string http_response = "HTTP/1.1 200 OK\r\n";
+        http_response += "Content-Type: " + content_type + "\r\n";
+        http_response += "Access-Control-Allow-Origin: *\r\n";
+        http_response += "Content-Length: " + to_string(response.length()) + "\r\n";
+        http_response += "Connection: close\r\n\r\n";
+        http_response += response;
+        
+        send(client_fd, http_response.c_str(), http_response.length(), 0);
         close(client_fd);
     }
     
@@ -247,33 +319,65 @@ void run_http_server(SharedData* shared) {
 }
 
 void run_server(SharedData* shared) {
+    // Инициализация DBClient вместо старого db_conn
     try {
-        db_conn = new pqxx::connection("dbname=cellmap user=postgres password=postgres host=localhost port=5434");
-        if (db_conn->is_open()) {
-            cout << "Connected to PostgreSQL" << endl;
+        g_db_client = make_unique<DBClient>("dbname=cellmap user=postgres password=postgres host=localhost port=5434");
+        if (g_db_client->isConnected()) {
+            // Инициализируем схему БД
+            g_db_client->initializeSchema();
+            cout << "Connected to PostgreSQL via DBClient" << endl;
+            
+            // Автоматически импортируем JSON файлы при старте
+            if (fs::exists("data")) {
+                cout << "Importing JSON files from data/ directory..." << endl;
+                g_db_client->importJsonDirectory("data");
+            }
         } else {
             cerr << "Failed to connect to PostgreSQL" << endl;
-            delete db_conn;
-            db_conn = nullptr;
         }
     } catch (const exception& e) {
         cerr << "DB connection error: " << e.what() << endl;
-        db_conn = nullptr;
+        g_db_client.reset();
     }
     
+    // Запускаем HTTP сервер в отдельном потоке
     thread http_thread(run_http_server, shared);
     http_thread.detach();
     
     context_t context(1);
     socket_t socket(context, socket_type::rep);
-    socket.bind("tcp://*:8080");
+    
+    int retry_count = 0;
+    while (retry_count < 5) {
+        try {
+            socket.bind("tcp://*:8080");
+            break;
+        } catch (const zmq::error_t& e) {
+            cerr << "Failed to bind to 8080, attempt " << retry_count + 1 << ": " << e.what() << endl;
+            retry_count++;
+            if (retry_count >= 5) {
+                cerr << "Could not bind to port 8080 after 5 attempts. Trying port 8085..." << endl;
+                try {
+                    socket.bind("tcp://*:8085");
+                    cout << "Using alternative port 8085" << endl;
+                } catch (const zmq::error_t& e2) {
+                    cerr << "Failed to bind to any port: " << e2.what() << endl;
+                    return;
+                }
+            }
+            sleep(1);
+        }
+    }
 
     string server_ip = get_local_ip();
     
     cout << "=====================================" << endl;
-    cout << "ZMQ Server started on " << server_ip << ":8080" << endl;
-    cout << "HTTP Server started on " << server_ip << ":8081" << endl;
+    cout << "ZMQ Server started on 0.0.0.0:8080" << endl;
+    cout << "HTTP Server started on 0.0.0.0:8081" << endl;
+    cout << "Server IP address: " << server_ip << endl;
     cout << "Open browser: http://" << server_ip << ":8081/heatmap.html" << endl;
+    cout << "=====================================" << endl;
+    cout << "For phone connection use: tcp://" << server_ip << ":8080" << endl;
     cout << "=====================================" << endl;
  
     bool phone_connected = false;
@@ -289,6 +393,7 @@ void run_server(SharedData* shared) {
         
         if (raw_text == "ping") {
             socket.send(zmq::buffer("pong"), zmq::send_flags::none);
+            cout << "Ping received, pong sent" << endl;
             continue;
         }
         
@@ -341,13 +446,17 @@ void run_server(SharedData* shared) {
             phone_connected = true;
         }
         
-        cout << "Received: " << raw_text << endl;
+        cout << "Received data, size: " << raw_text.size() << " bytes" << endl;
         
         try {
             json received_data = json::parse(raw_text);
             
-            save_to_db(received_data);
+            // Сохраняем в БД через DBClient
+            if (g_db_client && g_db_client->isConnected()) {
+                g_db_client->importJsonData(received_data);
+            }
             
+            // Также сохраняем в память для GUI
             {
                 lock_guard<mutex> lock(shared->data_mutex);
                 shared->recent_records.push_back(received_data);
@@ -357,6 +466,7 @@ void run_server(SharedData* shared) {
                 shared->counter++;
             }
 
+            // Сохраняем в JSON файлы (для совместимости со старым кодом)
             json all_data;
             string all_data_file = "data/all_data.json";
             ifstream all_file(all_data_file);

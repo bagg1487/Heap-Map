@@ -1,17 +1,17 @@
 #pragma once
-#include <mutex>
 #include <deque>
+#include <mutex>
 #include <nlohmann/json.hpp>
-#include <string>
 
 using json = nlohmann::json;
 
 struct SharedData {
-    std::mutex data_mutex;
     std::deque<json> recent_records;
+    std::mutex data_mutex;
     int counter = 0;
     int max_history = 1000;
     
+    // Filters
     bool filter_location = true;
     bool filter_telephony = true;
     bool filter_traffic = true;
