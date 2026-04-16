@@ -74,7 +74,7 @@ cd database
 docker-compose up -d
 ```
 
-# Параметры подключения: 
+#### Параметры подключения: 
 Host: localhost, Port: 5434, DB: cellmap, User/Pass: postgres.
 
 ### 3. Сборка и запуск приложения
